@@ -936,10 +936,17 @@ class ProductionEmotionAnalyzer:
                     print(f"⚠️ Model {model_name} failed: {e}")
         
         if not model_results:
+            print(f"❌ NO MODEL RESULTS - All models failed!")
             return self._get_neutral_result()
         
+        print(f"🔍 DEBUG: Model results count: {len(model_results)}")
+        for model_name, result in model_results.items():
+            print(f"🔍 DEBUG: {model_name} -> {result}")
+        
         # Combine results using weighted voting
-        return self._ensemble_vote(model_results)
+        ensemble_result = self._ensemble_vote(model_results)
+        print(f"🔍 DEBUG: Final ensemble result: {ensemble_result}")
+        return ensemble_result
     
     def _run_single_model(self, model_name: str, model_config: Dict, text: str) -> Optional[Dict]:
         """Run a single model and return standardized results"""
@@ -1073,6 +1080,7 @@ class ProductionEmotionAnalyzer:
             
             # 🧠 STEP 2: Use ensemble approach with preprocessed text
             result = self._analyze_with_ensemble(preprocessed_text)
+            print(f"🔍 DEBUG: Raw ensemble result in analyze_text_emotion: {result}")
             
             # 🎓 STEP 3: Apply user-centric learning adjustments
             if 'confidence' in result and 'dominant_emotion' in result:
@@ -1093,7 +1101,7 @@ class ProductionEmotionAnalyzer:
                 environmental_context = self.context_preprocessor.get_environmental_context()
                 environmental_multiplier = 1.0
                 
-                if environmental_context.get('has_context'):
+                if environmental_context and environmental_context.get('has_context'):
                     emotion_modifiers = environmental_context.get('emotion_modifiers', {})
                     
                     # Apply environmental adjustment to predicted emotion
@@ -1114,6 +1122,8 @@ class ProductionEmotionAnalyzer:
                 adjusted_confidence = min(1.0, max(0.0, adjusted_confidence))  # Clamp to [0,1]
                 
                 result['confidence'] = adjusted_confidence
+                print(f"🔍 DEBUG: After confidence adjustment - emotion: {result['dominant_emotion']}, confidence: {adjusted_confidence}")
+                print(f"🔍 DEBUG: Multipliers - context: {context_confidence_multiplier}, user: {user_confidence_multiplier}, env: {environmental_multiplier}")
                 
                 # Confidence adjustments completed
                 
@@ -1123,7 +1133,7 @@ class ProductionEmotionAnalyzer:
                     # User pattern suggestion applied
                 
                 # Store environmental context in result
-                if environmental_context.get('has_context'):
+                if environmental_context and environmental_context.get('has_context'):
                     result['environmental_context'] = environmental_context
             
             # Add comprehensive AI context metadata
@@ -1136,9 +1146,9 @@ class ProductionEmotionAnalyzer:
                 'preprocessing_applied': preprocessed_text != text,
                 'user_suggested_emotion': suggested_emotion if 'suggested_emotion' in locals() else None,
                 'environment_suggested_emotion': result.get('environment_suggested_emotion'),
-                'environmental_context_available': environmental_context.get('has_context', False) if 'environmental_context' in locals() else False,
-                'environmental_type': environmental_context.get('environment_type') if 'environmental_context' in locals() else None,
-                'detected_objects': environmental_context.get('detected_objects', []) if 'environmental_context' in locals() else [],
+                'environmental_context_available': environmental_context.get('has_context', False) if environmental_context else False,
+                'environmental_type': environmental_context.get('environment_type') if environmental_context else None,
+                'detected_objects': environmental_context.get('detected_objects', []) if environmental_context else [],
                 'user_id': user_id,
                 'analysis_layers': ['ai_preprocessing', 'ensemble_models', 'user_learning', 'environmental_context']
             }
@@ -1147,10 +1157,14 @@ class ProductionEmotionAnalyzer:
             result['timestamp'] = datetime.now().isoformat()
             result['processing_time'] = time.time()
             
+            print(f"🔍 DEBUG: Final result before return in analyze_text_emotion: {result}")
             return result
             
         except Exception as e:
             # AI emotion analysis failed
+            print(f"❌ EXCEPTION in analyze_text_emotion: {e}")
+            import traceback
+            traceback.print_exc()
             return self._get_neutral_result()
 
 class FunctionCalling:
