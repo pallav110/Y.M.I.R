@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y.M.I.R - Advanced Image Processing</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .processing-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Navigation -->
+    <nav class="glassmorphism p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-2xl font-bold text-white">🧠 Y.M.I.R</h1>
+                <span class="text-sm text-gray-200">Advanced Image Processing</span>
+            </div>
+            <div class="flex space-x-4">
+                <a href="/" class="text-white hover:text-blue-200 transition-colors">Home</a>
+                <a href="/ai_app" class="text-white hover:text-blue-200 transition-colors">Emotion Detection</a>
+                <a href="/dashboard" class="text-white hover:text-blue-200 transition-colors">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4">
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <h2 class="text-4xl font-bold text-white mb-4">Advanced Image Processing Lab</h2>
+            <p class="text-xl text-gray-200 max-w-3xl mx-auto">
+                Explore cutting-edge image processing techniques including edge detection, 
+                color model conversions, and Viola-Jones face detection integrated into Y.M.I.R's emotion analysis system.
+            </p>
+        </div>
+
+        <!-- Image Upload Section -->
+        <div class="glassmorphism rounded-2xl p-6 mb-8">
+            <h3 class="text-2xl font-semibold text-white mb-4">📷 Upload Image for Processing</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Upload Area -->
+                <div>
+                    <div class="border-2 border-dashed border-blue-300 rounded-xl p-8 text-center">
+                        <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                        <div class="cursor-pointer" onclick="document.getElementById('imageUpload').click()">
+                            <svg class="mx-auto h-12 w-12 text-blue-300" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <p class="mt-4 text-lg text-white">Click to upload an image</p>
+                            <p class="text-sm text-gray-300">PNG, JPG, GIF up to 10MB</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Original Image Preview -->
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Original Image</h4>
+                    <div id="originalImageContainer" class="border rounded-xl overflow-hidden bg-gray-800">
+                        <img id="originalImage" class="w-full h-64 object-cover" style="display: none;">
+                        <div id="placeholderImage" class="w-full h-64 flex items-center justify-center text-gray-400">
+                            <span>No image selected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Options -->
+        <div class="glassmorphism rounded-2xl p-6 mb-8">
+            <h3 class="text-2xl font-semibold text-white mb-4">⚙️ Processing Options</h3>
+            <div class="grid md:grid-cols-3 gap-4">
+                <!-- Edge Detection -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-4">
+                    <h4 class="text-lg font-semibold text-white mb-2">🔍 Edge Detection</h4>
+                    <select id="edgeMethod" class="w-full p-2 rounded bg-gray-700 text-white">
+                        <option value="canny">Canny Edge Detection</option>
+                        <option value="sobel">Sobel Edge Detection</option>
+                        <option value="laplacian">Laplacian Edge Detection</option>
+                    </select>
+                </div>
+                
+                <!-- Color Model -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-4">
+                    <h4 class="text-lg font-semibold text-white mb-2">🎨 Color Model</h4>
+                    <select id="colorModel" class="w-full p-2 rounded bg-gray-700 text-white">
+                        <option value="RGB">RGB Color Space</option>
+                        <option value="HSV">HSV Color Space</option>
+                        <option value="YCbCr">YCbCr Color Space</option>
+                        <option value="LAB">LAB Color Space</option>
+                    </select>
+                </div>
+                
+                <!-- Processing Type -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-4">
+                    <h4 class="text-lg font-semibold text-white mb-2">🔬 Analysis Type</h4>
+                    <select id="analysisType" class="w-full p-2 rounded bg-gray-700 text-white">
+                        <option value="full">Complete Analysis</option>
+                        <option value="face">Face Detection Only</option>
+                        <option value="edges">Edge Analysis Only</option>
+                        <option value="color">Color Analysis Only</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Process Button -->
+            <div class="text-center mt-6">
+                <button id="processButton" onclick="processImage()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105">
+                    🚀 Process Image
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="glassmorphism rounded-2xl p-6 mb-8" style="display: none;">
+            <h3 class="text-2xl font-semibold text-white mb-4">📊 Processing Results</h3>
+            
+            <!-- Processing Info -->
+            <div id="processingInfo" class="bg-gray-800 bg-opacity-50 rounded-xl p-4 mb-6">
+                <h4 class="text-lg font-semibold text-white mb-2">📈 Analysis Summary</h4>
+                <div id="infoContent" class="text-gray-200"></div>
+            </div>
+            
+            <!-- Results Grid -->
+            <div id="resultsGrid" class="result-grid">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+
+        <!-- Educational Section -->
+        <div class="glassmorphism rounded-2xl p-6 mb-8">
+            <h3 class="text-2xl font-semibold text-white mb-4">📚 Image Processing Techniques</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Edge Detection Info -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-4">
+                    <h4 class="text-lg font-semibold text-white mb-2">🔍 Edge Detection</h4>
+                    <p class="text-gray-300 text-sm mb-2">
+                        <strong>Canny:</strong> Multi-stage edge detection with noise reduction and hysteresis thresholding.
+                    </p>
+                    <p class="text-gray-300 text-sm mb-2">
+                        <strong>Sobel:</strong> Gradient-based edge detection using convolution with Sobel operators.
+                    </p>
+                    <p class="text-gray-300 text-sm">
+                        <strong>Laplacian:</strong> Second-derivative edge detection highlighting rapid intensity changes.
+                    </p>
+                </div>
+                
+                <!-- Color Models Info -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-4">
+                    <h4 class="text-lg font-semibold text-white mb-2">🎨 Color Models</h4>
+                    <p class="text-gray-300 text-sm mb-2">
+                        <strong>HSV:</strong> Hue, Saturation, Value - intuitive for color-based processing.
+                    </p>
+                    <p class="text-gray-300 text-sm mb-2">
+                        <strong>YCbCr:</strong> Luminance and chrominance - used in video compression.
+                    </p>
+                    <p class="text-gray-300 text-sm">
+                        <strong>LAB:</strong> Perceptually uniform color space for accurate color analysis.
+                    </p>
+                </div>
+                
+                <!-- Face Detection Info -->
+                <div class="bg-gray-800 bg-opacity-50 rounded-xl p-4">
+                    <h4 class="text-lg font-semibold text-white mb-2">👤 Face Detection</h4>
+                    <p class="text-gray-300 text-sm mb-2">
+                        <strong>Viola-Jones:</strong> Haar cascade-based real-time face detection algorithm.
+                    </p>
+                    <p class="text-gray-300 text-sm mb-2">
+                        <strong>Features:</strong> Integral image, AdaBoost learning, cascade classification.
+                    </p>
+                    <p class="text-gray-300 text-sm">
+                        <strong>Application:</strong> Enhanced emotion detection through precise face localization.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let currentImage = null;
+
+        // Image upload handling
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImage = e.target.result;
+                    const img = document.getElementById('originalImage');
+                    const placeholder = document.getElementById('placeholderImage');
+                    
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        async function processImage() {
+            if (!currentImage) {
+                alert('Please upload an image first!');
+                return;
+            }
+
+            const button = document.getElementById('processButton');
+            button.innerHTML = '⏳ Processing...';
+            button.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('image', currentImage);
+                formData.append('edge_method', document.getElementById('edgeMethod').value);
+                formData.append('color_model', document.getElementById('colorModel').value);
+                formData.append('analysis_type', document.getElementById('analysisType').value);
+
+                const response = await fetch('/api/process_image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Processing failed');
+                }
+
+                const result = await response.json();
+                displayResults(result);
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error processing image. Please try again.');
+            } finally {
+                button.innerHTML = '🚀 Process Image';
+                button.disabled = false;
+            }
+        }
+
+        function displayResults(result) {
+            const resultsSection = document.getElementById('resultsSection');
+            const infoContent = document.getElementById('infoContent');
+            const resultsGrid = document.getElementById('resultsGrid');
+
+            // Display processing info
+            const info = result.processing_info;
+            infoContent.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div><strong>Faces Detected:</strong> ${info.faces_detected}</div>
+                    <div><strong>Enhancement Applied:</strong> ${info.enhancement_applied ? 'Yes' : 'No'}</div>
+                    <div><strong>Color Models:</strong> ${info.color_models.join(', ')}</div>
+                    <div><strong>Edge Detection:</strong> ${info.edge_detection}</div>
+                </div>
+            `;
+
+            // Display result images
+            resultsGrid.innerHTML = '';
+
+            if (result.enhanced) {
+                addResultImage('Enhanced Image', result.enhanced, 'Enhanced facial features and contrast');
+            }
+
+            if (result.edges) {
+                addResultImage('Edge Detection', result.edges, 'Detected edges using selected algorithm');
+            }
+
+            if (result.hsv) {
+                addResultImage('HSV Color Space', result.hsv, 'Hue, Saturation, Value representation');
+            }
+
+            if (result.ycbcr) {
+                addResultImage('YCbCr Color Space', result.ycbcr, 'Luminance and chrominance representation');
+            }
+
+            if (result.face_detected) {
+                addResultImage('Face Detection', result.face_detected, 'Viola-Jones face detection results');
+            }
+
+            resultsSection.style.display = 'block';
+        }
+
+        function addResultImage(title, imageData, description) {
+            const resultsGrid = document.getElementById('resultsGrid');
+            const div = document.createElement('div');
+            div.className = 'bg-gray-800 bg-opacity-50 rounded-xl p-4';
+            div.innerHTML = `
+                <h4 class="text-lg font-semibold text-white mb-2">${title}</h4>
+                <img src="${imageData}" class="w-full h-48 object-cover rounded-lg mb-2">
+                <p class="text-gray-300 text-sm">${description}</p>
+            `;
+            resultsGrid.appendChild(div);
+        }
+    </script>
+</body>
+</html>

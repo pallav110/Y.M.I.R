@@ -60,7 +60,8 @@ To revolutionize mental health care by making personalized therapeutic intervent
 ### 🤝 **Community & Support**
 
 - **Community Forum**: Safe space for sharing experiences and support
-- **Professional Connections**: Direct access to mental health professionals
+- **Professional Therapist Finder**: Advanced search with real-time location detection and international database integration
+- **Global Mental Health Directory**: Access to verified therapists worldwide with automatic geolocation
 - **Crisis Support**: 24/7 helpline integration and emergency resources
 - **Peer Support Network**: Connect with others on similar wellness journeys
 
@@ -128,6 +129,9 @@ To revolutionize mental health care by making personalized therapeutic intervent
 #### **External Integrations**
 
 - **Music Services**: YouTube Data API, SoundCloud API
+- **Healthcare Databases**: NPI Registry API (US), Practo API (India), Government Health Portals
+- **Geolocation Services**: OpenStreetMap Nominatim API, Location detection services
+- **International Therapy Platforms**: BetterHelp, Mental health directories worldwide
 - **Communication**: SMTP email services
 - **File Storage**: Local storage with cloud deployment support
 
@@ -171,6 +175,8 @@ Y.M.I.R/
 │   ├── breathing.html       # Breathing exercises
 │   ├── goals.html           # Goal setting
 │   ├── sound_therapy.html   # Sound therapy interface
+│   ├── therapist_finder.html # Professional therapist directory with geolocation
+│   ├── image_processing.html # Advanced image analysis module
 │   ├── community_support.html # Community features
 │   ├── wellness_tools.html  # Wellness toolkit
 │   ├── gaming.html          # Gamification features
@@ -309,21 +315,36 @@ Open your browser and navigate to: `http://127.0.0.1:5000`
 - Track wellness goal progress
 - Generate insights for personal growth
 
+#### **🌍 Professional Therapist Finder**
+
+- **Automatic Geolocation**: Browser-based location detection with user permission
+- **Global Database Integration**: US (NPI Registry), India (Practo, Government portals), International platforms
+- **Smart Location Parsing**: Supports "City, State", ZIP codes, and international addresses
+- **Real-time API Connections**: Live data from healthcare platforms and government directories
+- **Professional SVG Design**: Modern glassmorphism UI with custom icon system
+- **Crisis Resources**: Immediate access to mental health helplines and emergency support
+- **Verified Providers**: Licensed professionals with credential verification
+- **Multiple Search Strategies**: Specialty-based, location-based, and platform-based searches
+
 ---
 
 ## 🎯 **API Endpoints**
 
 ### **Core Endpoints**
 
-| Endpoint        | Method   | Description                                  |
-| --------------- | -------- | -------------------------------------------- |
-| `/`             | GET      | Landing page                                 |
-| `/ai_app`       | GET      | Main emotion detection interface             |
-| `/video_feed`   | GET      | Real-time video stream for emotion detection |
-| `/get_emotions` | GET      | Retrieve current emotion data                |
-| `/chat`         | POST     | Process chatbot interactions                 |
-| `/recommend`    | GET/POST | Get music recommendations                    |
-| `/get_audio`    | GET      | Stream audio recommendations                 |
+| Endpoint              | Method   | Description                                  |
+| --------------------- | -------- | -------------------------------------------- |
+| `/`                   | GET      | Landing page                                 |
+| `/ai_app`             | GET      | Main emotion detection interface             |
+| `/video_feed`         | GET      | Real-time video stream for emotion detection |
+| `/get_emotions`       | GET      | Retrieve current emotion data                |
+| `/chat`               | POST     | Process chatbot interactions                 |
+| `/recommend`          | GET/POST | Get music recommendations                    |
+| `/get_audio`          | GET      | Stream audio recommendations                 |
+| `/therapist_finder`   | GET      | Professional therapist directory             |
+| `/api/therapists`     | GET/POST | Search for therapists with location support  |
+| `/api/geocode`        | POST     | Server-side geocoding for location detection|
+| `/image_processing`   | GET      | Advanced image analysis interface            |
 
 ### **Wellness Endpoints**
 
@@ -507,8 +528,9 @@ We welcome contributions from developers, researchers, and mental health profess
 - 🔒 **Security**: Never commit sensitive data or API keys
 - 📝 **Documentation**: Update README and code comments
 - 🧪 **Testing**: Include tests for new functionality
-- 🎨 **UI/UX**: Maintain consistent design language
+- 🎨 **UI/UX**: Maintain consistent design language with professional SVG icons and glassmorphism effects
 - 🧠 **AI Ethics**: Consider bias and fairness in ML implementations
+- 🌍 **International Support**: Ensure features work across different countries and healthcare systems
 
 ---
 

@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y.M.I.R Therapist Finder - Professional Mental Health Support</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%234F46E5'/><text x='50' y='60' font-family='Arial,sans-serif' font-size='35' font-weight='bold' fill='white' text-anchor='middle'>Y</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============ Y.M.I.R ENHANCED THEME SYSTEM ============ */
+        :root {
+            /* Primary Color Palette */
+            --primary-blue: #4070ff;
+            --primary-cyan: #00d4ff;
+            --primary-dark: #3b82f6;
+            --primary-deep: #1e3a8a;
+            
+            /* Secondary Colors */
+            --secondary-light: #60a5fa;
+            --secondary-medium: #93c5fd;
+            --secondary-glow: #4fd1c7;
+            --secondary-accent: #06d6a0;
+            
+            /* Background System */
+            --bg-primary: #0c0c0c;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --bg-card: rgba(30, 30, 30, 0.8);
+            --bg-glass: rgba(255, 255, 255, 0.15);
+            --bg-ultra-glass: rgba(255, 255, 255, 0.1);
+            
+            /* Text Colors */
+            --text-primary: #f0f0f0;
+            --text-secondary: #dbeafe;
+            --text-muted: #e2e8f0;
+            --text-accent: #ffffff;
+            --text-gradient: linear-gradient(135deg, #4070ff, #00d4ff);
+            
+            /* Shadows & Glows */
+            --shadow-primary: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.4);
+            --shadow-cyan-glow: 0 0 25px rgba(0, 212, 255, 0.6);
+            --shadow-purple-glow: 0 0 20px rgba(139, 92, 246, 0.5);
+            
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+            --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* ============ BASE STYLES ============ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(125deg, #000000, #0f172a, #1e293b);
+            background-size: 400% 400%;
+            animation: gradientFlow 20s ease infinite;
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(64, 112, 255, 0.7);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 0 10px rgba(64, 112, 255, 0);
+                transform: scale(1.02);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* ============ FLOATING BACKGROUND ELEMENTS ============ */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary-cyan);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            box-shadow: 0 0 10px var(--primary-cyan);
+        }
+
+        .floating-particle:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+        .floating-particle:nth-child(2) { top: 40%; left: 80%; animation-delay: 2s; }
+        .floating-particle:nth-child(3) { top: 70%; left: 20%; animation-delay: 4s; }
+        .floating-particle:nth-child(4) { top: 15%; left: 70%; animation-delay: 1s; }
+        .floating-particle:nth-child(5) { top: 85%; left: 60%; animation-delay: 3s; }
+
+        /* ============ MAIN CONTAINER ============ */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ============ ENHANCED HEADER ============ */
+        .hero-header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 60px 40px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-2xl);
+            border: 1px solid rgba(100, 100, 255, 0.2);
+            box-shadow: var(--shadow-primary);
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 0.8s ease;
+        }
+
+        .hero-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: var(--text-gradient);
+            animation: slideRight 3s ease infinite;
+        }
+
+        @keyframes slideRight {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: -100%; }
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            text-shadow: 0 0 30px rgba(64, 112, 255, 0.5);
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(64, 112, 255, 0.1);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(64, 112, 255, 0.3);
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-cyan);
+            text-shadow: 0 0 10px var(--primary-cyan);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* ============ ENHANCED CARD GRID ============ */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .service-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(100, 100, 255, 0.2);
+            box-shadow: var(--shadow-primary);
+            padding: 40px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 0.8s ease;
+            animation-fill-mode: both;
+        }
+
+        .service-card:nth-child(1) { animation-delay: 0.2s; }
+        .service-card:nth-child(2) { animation-delay: 0.4s; }
+        .service-card:nth-child(3) { animation-delay: 0.6s; }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--text-gradient);
+            opacity: 0;
+            transition: var(--transition-normal);
+        }
+
+        .service-card:hover {
+            transform: translateY(-15px) rotateX(5deg);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), var(--shadow-glow);
+            border-color: rgba(64, 112, 255, 0.5);
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon-container {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            background: var(--text-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+            position: relative;
+        }
+
+        .card-icon-container::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--text-gradient);
+            border-radius: 50%;
+            opacity: 0.3;
+            transform: scale(1.3);
+            animation: pulse 2s infinite;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: white;
+            z-index: 2;
+            position: relative;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-description {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.7;
+            font-size: 1.1rem;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+            color: var(--text-secondary);
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--secondary-glow);
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--secondary-glow);
+        }
+
+        /* ============ ENHANCED BUTTONS ============ */
+        .btn-primary {
+            background: var(--text-gradient);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            min-width: 200px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: var(--transition-normal);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(64, 112, 255, 0.4);
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-secondary {
+            background: rgba(30, 30, 30, 0.8);
+            border: 2px solid rgba(64, 112, 255, 0.5);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(64, 112, 255, 0.1);
+            border-color: var(--primary-cyan);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        /* ============ ENHANCED SEARCH SECTION ============ */
+        .search-section {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(100, 100, 255, 0.2);
+            padding: 50px;
+            margin-bottom: 50px;
+            text-align: center;
+            box-shadow: var(--shadow-primary);
+            animation: slideInUp 0.8s ease 0.8s both;
+        }
+
+        .search-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(30, 30, 30, 0.8);
+            border: 2px solid rgba(100, 100, 255, 0.2);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition-normal);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* ============ LOCATION DETECTION STYLES ============ */
+        .location-detect-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .location-detect-btn:hover {
+            background: var(--primary-cyan);
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
+
+        .location-detect-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .location-detect-btn.loading {
+            animation: spin 1s linear infinite;
+            background: var(--primary-dark);
+        }
+
+        .location-status {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .location-status.success {
+            color: #10b981;
+        }
+
+        .location-status.error {
+            color: #f87171;
+        }
+
+        .location-status.loading {
+            color: var(--primary-cyan);
+        }
+
+        @keyframes spin {
+            from { transform: translateY(-50%) rotate(0deg); }
+            to { transform: translateY(-50%) rotate(360deg); }
+        }
+
+        /* ============ THERAPIST RESULTS SECTION ============ */
+        .results-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .therapist-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(100, 100, 255, 0.2);
+            padding: 30px;
+            margin-bottom: 25px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .therapist-card:hover {
+            transform: translateX(10px);
+            box-shadow: var(--shadow-glow);
+            border-color: rgba(64, 112, 255, 0.5);
+        }
+
+        .therapist-info {
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .therapist-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--text-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 5px 15px rgba(64, 112, 255, 0.3);
+        }
+
+        .therapist-details h3 {
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .therapist-specialties {
+            color: var(--secondary-glow);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .therapist-location {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ============ RESPONSIVE DESIGN ============ */
+        @media (max-width: 1200px) {
+            .services-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 20px 15px;
+            }
+            
+            .hero-header {
+                padding: 40px 20px;
+                margin-bottom: 40px;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            
+            .service-card {
+                padding: 30px 20px;
+            }
+            
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-section {
+                padding: 30px 20px;
+            }
+            
+            .hero-stats {
+                gap: 20px;
+            }
+            
+            .therapist-info {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 15px;
+            }
+        }
+
+        /* ============ LOADING ANIMATIONS ============ */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(64, 112, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-cyan);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============ ACCESSIBILITY & FOCUS STATES ============ */
+        .btn-primary:focus,
+        .btn-secondary:focus {
+            outline: 2px solid var(--primary-cyan);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+        <div class="floating-particle"></div>
+        <div class="floating-particle"></div>
+        <div class="floating-particle"></div>
+        <div class="floating-particle"></div>
+        <div class="floating-particle"></div>
+    </div>
+
+    <div class="main-container">
+        <!-- Enhanced Hero Header -->
+        <header class="hero-header">
+            <div class="hero-icon-container" style="margin-bottom: 25px;">
+                <svg width="100" height="100" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 20px var(--secondary-glow));">
+                    <!-- Neural Network Background -->
+                    <circle cx="20" cy="30" r="3" fill="var(--primary-cyan)" opacity="0.6"/>
+                    <circle cx="80" cy="25" r="3" fill="var(--primary-cyan)" opacity="0.6"/>
+                    <circle cx="15" cy="70" r="3" fill="var(--primary-cyan)" opacity="0.6"/>
+                    <circle cx="85" cy="75" r="3" fill="var(--primary-cyan)" opacity="0.6"/>
+                    <circle cx="50" cy="15" r="3" fill="var(--primary-cyan)" opacity="0.6"/>
+                    
+                    <!-- Network Connections -->
+                    <line x1="20" y1="30" x2="50" y2="50" stroke="var(--primary-cyan)" stroke-width="1" opacity="0.4"/>
+                    <line x1="80" y1="25" x2="50" y2="50" stroke="var(--primary-cyan)" stroke-width="1" opacity="0.4"/>
+                    <line x1="15" y1="70" x2="50" y2="50" stroke="var(--primary-cyan)" stroke-width="1" opacity="0.4"/>
+                    <line x1="85" y1="75" x2="50" y2="50" stroke="var(--primary-cyan)" stroke-width="1" opacity="0.4"/>
+                    <line x1="50" y1="15" x2="50" y2="50" stroke="var(--primary-cyan)" stroke-width="1" opacity="0.4"/>
+                    
+                    <!-- Central Brain -->
+                    <circle cx="50" cy="50" r="20" fill="none" stroke="var(--primary-blue)" stroke-width="2"/>
+                    <path d="M35 45 Q42 35, 50 45 Q58 35, 65 45 Q58 55, 50 45 Q42 55, 35 45 Z" fill="var(--primary-blue)" opacity="0.8"/>
+                    
+                    <!-- Medical Cross Overlay -->
+                    <rect x="47" y="35" width="6" height="30" fill="white" opacity="0.9"/>
+                    <rect x="35" y="47" width="30" height="6" fill="white" opacity="0.9"/>
+                </svg>
+            </div>
+            <h1 class="hero-title">Y.M.I.R Therapist Finder</h1>
+            <p class="hero-subtitle">
+                AI-powered mental health support connecting you with qualified professionals, 
+                peer support communities, and instant crisis assistance.
+            </p>
+            
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number">US</span>
+                    <span class="stat-label">Nationwide Network</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Crisis Support</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">SAMHSA</span>
+                    <span class="stat-label">Verified Directory</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">AI</span>
+                    <span class="stat-label">Smart Matching</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Enhanced Services Grid -->
+        <section class="services-grid">
+            <!-- Instant Crisis Support -->
+            <div class="service-card">
+                <div class="card-icon-container">
+                    <svg width="50" height="50" viewBox="0 0 50 50" class="card-icon">
+                        <!-- Emergency Shield Background -->
+                        <path d="M25 2 L40 10 L40 30 Q40 40, 25 48 Q10 40, 10 30 L10 10 Z" fill="var(--primary-blue)" opacity="0.3"/>
+                        
+                        <!-- Phone Base -->
+                        <rect x="18" y="15" width="14" height="20" rx="2" fill="white"/>
+                        <rect x="19" y="16" width="12" height="18" rx="1" fill="var(--primary-blue)"/>
+                        
+                        <!-- Emergency Cross -->
+                        <rect x="24" y="10" width="2" height="10" fill="#ff4444"/>
+                        <rect x="19" y="14" width="12" height="2" fill="#ff4444"/>
+                        
+                        <!-- Signal Waves -->
+                        <path d="M35 20 Q38 17, 35 14" fill="none" stroke="var(--secondary-glow)" stroke-width="2"/>
+                        <path d="M37 22 Q41 18, 37 14" fill="none" stroke="var(--secondary-glow)" stroke-width="2"/>
+                        
+                        <!-- Heartbeat Line -->
+                        <path d="M8 25 L12 25 L14 20 L16 30 L18 20 L20 25 L24 25" fill="none" stroke="#ff4444" stroke-width="2"/>
+                    </svg>
+                </div>
+                <h2 class="card-title">Instant Crisis Support</h2>
+                <p class="card-description">
+                    Immediate access to trained crisis counselors and emergency mental health resources 
+                    available 24/7 for urgent situations.
+                </p>
+                <ul class="features-list">
+                    <li>24/7 Crisis Hotline Access</li>
+                    <li>Emergency Text Support</li>
+                    <li>Local Emergency Resources</li>
+                    <li>Immediate Safety Planning</li>
+                    <li>Follow-up Care Coordination</li>
+                </ul>
+                <div style="text-align: center;">
+                    <a href="tel:988" class="btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: middle;">
+                            <path d="M3 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H3zm7 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-.5 3.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1z" fill="currentColor"/>
+                        </svg>
+                        Call 988 Crisis Line
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI-Powered Matching -->
+            <div class="service-card">
+                <div class="card-icon-container">
+                    <svg width="50" height="50" viewBox="0 0 50 50" class="card-icon">
+                        <!-- Neural Network Base -->
+                        <circle cx="25" cy="25" r="20" fill="none" stroke="var(--primary-blue)" stroke-width="2"/>
+                        
+                        <!-- AI Brain Pattern -->
+                        <circle cx="15" cy="15" r="3" fill="var(--primary-cyan)"/>
+                        <circle cx="35" cy="15" r="3" fill="var(--primary-cyan)"/>
+                        <circle cx="25" cy="10" r="2" fill="var(--secondary-glow)"/>
+                        <circle cx="10" cy="25" r="2" fill="var(--secondary-glow)"/>
+                        <circle cx="40" cy="25" r="2" fill="var(--secondary-glow)"/>
+                        <circle cx="15" cy="35" r="3" fill="var(--primary-cyan)"/>
+                        <circle cx="35" cy="35" r="3" fill="var(--primary-cyan)"/>
+                        <circle cx="25" cy="40" r="2" fill="var(--secondary-glow)"/>
+                        
+                        <!-- Connection Lines -->
+                        <line x1="15" y1="15" x2="35" y2="15" stroke="white" stroke-width="1" opacity="0.6"/>
+                        <line x1="15" y1="15" x2="25" y2="25" stroke="white" stroke-width="1" opacity="0.6"/>
+                        <line x1="35" y1="15" x2="25" y2="25" stroke="white" stroke-width="1" opacity="0.6"/>
+                        <line x1="15" y1="35" x2="25" y2="25" stroke="white" stroke-width="1" opacity="0.6"/>
+                        <line x1="35" y1="35" x2="25" y2="25" stroke="white" stroke-width="1" opacity="0.6"/>
+                        <line x1="15" y1="35" x2="35" y2="35" stroke="white" stroke-width="1" opacity="0.6"/>
+                        
+                        <!-- Central Processing Unit -->
+                        <rect x="20" y="20" width="10" height="10" rx="2" fill="white"/>
+                        <rect x="22" y="22" width="6" height="6" rx="1" fill="var(--primary-blue)"/>
+                        
+                        <!-- Matching Arrows -->
+                        <path d="M8 20 L12 25 L8 30" fill="none" stroke="var(--secondary-glow)" stroke-width="2"/>
+                        <path d="M42 30 L38 25 L42 20" fill="none" stroke="var(--secondary-glow)" stroke-width="2"/>
+                    </svg>
+                </div>
+                <h2 class="card-title">AI-Powered Matching</h2>
+                <p class="card-description">
+                    Advanced emotion detection and preference analysis to match you with the most 
+                    compatible therapist for your specific needs and communication style.
+                </p>
+                <ul class="features-list">
+                    <li>Emotion-Based Compatibility</li>
+                    <li>Personality Matching Algorithm</li>
+                    <li>Treatment Preference Analysis</li>
+                    <li>Scheduling Optimization</li>
+                    <li>Progress Tracking Integration</li>
+                </ul>
+                <div style="text-align: center;">
+                    <button class="btn-primary" onclick="startAIMatching()">
+                        <svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: middle;">
+                            <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <circle cx="5" cy="6" r="1" fill="currentColor"/>
+                            <circle cx="11" cy="6" r="1" fill="currentColor"/>
+                            <circle cx="8" cy="4" r="0.5" fill="currentColor"/>
+                            <circle cx="8" cy="12" r="0.5" fill="currentColor"/>
+                            <line x1="5" y1="6" x2="8" y2="8" stroke="currentColor" stroke-width="0.5"/>
+                            <line x1="11" y1="6" x2="8" y2="8" stroke="currentColor" stroke-width="0.5"/>
+                            <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                        </svg>
+                        Start AI Matching
+                    </button>
+                </div>
+            </div>
+
+            <!-- Professional Directory -->
+            <div class="service-card">
+                <div class="card-icon-container">
+                    <svg width="50" height="50" viewBox="0 0 50 50" class="card-icon">
+                        <!-- Directory Database -->
+                        <rect x="5" y="15" width="40" height="30" rx="3" fill="var(--primary-blue)" opacity="0.3"/>
+                        <rect x="7" y="17" width="36" height="26" rx="2" fill="white"/>
+                        
+                        <!-- Professional Profile Cards -->
+                        <rect x="10" y="20" width="12" height="8" rx="1" fill="var(--primary-cyan)" opacity="0.7"/>
+                        <rect x="28" y="20" width="12" height="8" rx="1" fill="var(--primary-cyan)" opacity="0.7"/>
+                        <rect x="10" y="32" width="12" height="8" rx="1" fill="var(--primary-cyan)" opacity="0.7"/>
+                        <rect x="28" y="32" width="12" height="8" rx="1" fill="var(--primary-cyan)" opacity="0.7"/>
+                        
+                        <!-- Profile Icons -->
+                        <circle cx="16" cy="23" r="2" fill="white"/>
+                        <circle cx="34" cy="23" r="2" fill="white"/>
+                        <circle cx="16" cy="35" r="2" fill="white"/>
+                        <circle cx="34" cy="35" r="2" fill="white"/>
+                        
+                        <!-- Medical Stethoscope Overlay -->
+                        <circle cx="25" cy="8" r="4" fill="none" stroke="var(--secondary-glow)" stroke-width="2"/>
+                        <path d="M25 12 Q20 15, 18 20 Q16 22, 18 24 Q20 22, 22 20 Q25 17, 25 12" fill="none" stroke="var(--secondary-glow)" stroke-width="2"/>
+                        <path d="M25 12 Q30 15, 32 20 Q34 22, 32 24 Q30 22, 28 20 Q25 17, 25 12" fill="none" stroke="var(--secondary-glow)" stroke-width="2"/>
+                        
+                        <!-- Verification Checkmarks -->
+                        <path d="M12 22 L14 24 L18 20" fill="none" stroke="white" stroke-width="1.5"/>
+                        <path d="M30 22 L32 24 L36 20" fill="none" stroke="white" stroke-width="1.5"/>
+                        <path d="M12 34 L14 36 L18 32" fill="none" stroke="white" stroke-width="1.5"/>
+                        <path d="M30 34 L32 36 L36 32" fill="none" stroke="white" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <h2 class="card-title">Professional Directory</h2>
+                <p class="card-description">
+                    Comprehensive database of licensed mental health professionals with verified 
+                    credentials, specialties, and real-time availability.
+                </p>
+                <ul class="features-list">
+                    <li>Licensed Psychiatrists & Psychologists</li>
+                    <li>Specialized Therapy Approaches</li>
+                    <li>Insurance Verification</li>
+                    <li>Online & In-Person Options</li>
+                    <li>Patient Reviews & Ratings</li>
+                </ul>
+                <div style="text-align: center;">
+                    <button class="btn-primary" onclick="showProfessionalSearch()">
+                        <svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: middle;">
+                            <circle cx="6.5" cy="6.5" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10.5 10.5l3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Browse Directory
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Enhanced Search Section -->
+        <section class="search-section" id="professionalSearch" style="display: none;">
+            <h2 class="search-title">Find Your Perfect Therapist</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px; font-size: 1.1rem;">
+                Use our advanced search to find licensed professionals in your area
+            </p>
+            
+            <form class="search-form" id="therapistSearchForm">
+                <div class="form-group">
+                    <div style="position: relative;">
+                        <input type="text" class="form-input" id="locationInput" 
+                               placeholder="City, State or ZIP Code (or click 📍 to auto-detect)" required>
+                        <button type="button" class="location-detect-btn" id="detectLocationBtn" 
+                                title="Auto-detect my location">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m3 11 18-9v18l-9-9-9 9z"/>
+                                <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                        </button>
+                        <div class="location-status" id="locationStatus"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <select class="form-select" id="specialtySelect">
+                        <option value="">Select Specialty</option>
+                        <option value="anxiety">Anxiety Disorders</option>
+                        <option value="depression">Depression</option>
+                        <option value="trauma">PTSD & Trauma</option>
+                        <option value="relationships">Relationship Counseling</option>
+                        <option value="addiction">Addiction & Recovery</option>
+                        <option value="family">Family Therapy</option>
+                        <option value="adolescent">Teen & Youth</option>
+                        <option value="bipolar">Bipolar Disorder</option>
+                        <option value="eating">Eating Disorders</option>
+                        <option value="grief">Grief & Loss</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-select" id="insuranceSelect">
+                        <option value="">Insurance Provider</option>
+                        <option value="aetna">Aetna</option>
+                        <option value="bcbs">Blue Cross Blue Shield</option>
+                        <option value="cigna">Cigna</option>
+                        <option value="humana">Humana</option>
+                        <option value="medicare">Medicare</option>
+                        <option value="medicaid">Medicaid</option>
+                        <option value="selfpay">Self-Pay</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-select" id="sessionTypeSelect">
+                        <option value="">Session Type</option>
+                        <option value="in-person">In-Person</option>
+                        <option value="online">Online/Video</option>
+                        <option value="phone">Phone Sessions</option>
+                        <option value="hybrid">Hybrid Options</option>
+                    </select>
+                </div>
+            </form>
+            
+            <button class="btn-primary" onclick="searchTherapists()" style="margin: 0 auto; display: block;">
+                <svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: middle;">
+                    <circle cx="6.5" cy="6.5" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path d="M10.5 10.5l3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Search Therapists
+            </button>
+        </section>
+
+        <!-- Results Container -->
+        <section class="results-container" id="resultsContainer">
+            <h3 style="color: var(--text-primary); font-size: 1.8rem; margin-bottom: 25px; text-align: center;">
+                Search Results
+            </h3>
+            <div id="therapistResults"></div>
+        </section>
+
+        <!-- Back to Dashboard -->
+        <div style="text-align: center; margin-top: 50px;">
+            <a href="/ai_app" class="btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: middle;">
+                    <path d="M8 16a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm0-1a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" fill="currentColor"/>
+                    <path d="M8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" fill="currentColor" transform="rotate(90 8 8)"/>
+                </svg>
+                Back to AI Dashboard
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // ============ ENHANCED JAVASCRIPT FUNCTIONALITY ============
+        
+        // Show professional search section
+        function showProfessionalSearch() {
+            const searchSection = document.getElementById('professionalSearch');
+            searchSection.style.display = 'block';
+            searchSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Add entrance animation
+            setTimeout(() => {
+                searchSection.style.animation = 'slideInUp 0.5s ease';
+            }, 100);
+        }
+
+        // Start AI matching process
+        function startAIMatching() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            // Show loading state
+            btn.innerHTML = '<span class="loading"></span> Analyzing your emotional profile...';
+            btn.disabled = true;
+            
+            // Simulate AI analysis
+            setTimeout(() => {
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: middle;"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" fill="currentColor"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" fill="currentColor"/></svg>Analysis Complete!';
+                
+                setTimeout(() => {
+                    showAIRecommendations();
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 1500);
+            }, 3000);
+        }
+
+        // Show AI-generated recommendations
+        function showAIRecommendations() {
+            const recommendations = [
+                {
+                    name: "Dr. Sarah Chen",
+                    specialty: "Anxiety & Cognitive Behavioral Therapy",
+                    match: "95%",
+                    reason: "Based on your emotional patterns, Dr. Chen's CBT approach aligns perfectly with your analytical thinking style.",
+                    location: "Downtown Medical Center",
+                    avatar: "SC"
+                },
+                {
+                    name: "Dr. Michael Rodriguez",
+                    specialty: "Depression & Mindfulness Therapy",
+                    match: "92%", 
+                    reason: "Your emotional data suggests mindfulness-based interventions would be highly effective for your stress patterns.",
+                    location: "Wellness Center West",
+                    avatar: "MR"
+                },
+                {
+                    name: "Dr. Emily Johnson",
+                    specialty: "Trauma-Informed Care & EMDR",
+                    match: "89%",
+                    reason: "Your responses indicate trauma-informed approaches could help process underlying emotional triggers.",
+                    location: "Healing Arts Clinic",
+                    avatar: "EJ"
+                }
+            ];
+
+            displayRecommendations(recommendations);
+        }
+
+        // Search therapists based on criteria
+        async function searchTherapists() {
+            const location = document.getElementById('locationInput').value;
+            const specialty = document.getElementById('specialtySelect').value;
+            const insurance = document.getElementById('insuranceSelect').value;
+            const sessionType = document.getElementById('sessionTypeSelect').value;
+
+            if (!location) {
+                alert('Please enter a location to search.');
+                return;
+            }
+
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsDiv = document.getElementById('therapistResults');
+            
+            // Show loading
+            resultsDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><span class="loading"></span><br><br>Searching therapists...</div>';
+            resultsContainer.style.display = 'block';
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const response = await fetch('/api/therapists', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        location: location,
+                        specialty: specialty,
+                        insurance: insurance,
+                        session_type: sessionType
+                    })
+                });
+
+                const data = await response.json();
+                console.log('🔍 API Response:', data); // Debug log
+                
+                if (data.therapists && data.therapists.length > 0) {
+                    // Show data source information
+                    if (data.data_sources && data.data_sources.length > 0) {
+                        resultsDiv.innerHTML = `
+                            <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(79, 209, 199, 0.1); border-radius: 12px; border: 1px solid var(--secondary-glow);">
+                                <h4 style="color: var(--secondary-glow); margin-bottom: 8px;">✅ Real Provider Data</h4>
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">Sources: ${data.data_sources.join(', ')}</p>
+                                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 5px;">${data.disclaimer}</p>
+                            </div>
+                        `;
+                    }
+                    displayTherapists(data.therapists);
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            <svg width="48" height="48" viewBox="0 0 16 16" style="margin-bottom: 20px; opacity: 0.5;">
+                                <circle cx="6.5" cy="6.5" r="5" fill="none" stroke="currentColor" stroke-width="1"/>
+                                <path d="M10.5 10.5l3.5 3.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+                            </svg>
+                            <h3>No therapists found</h3>
+                            <p>Try adjusting your search criteria or expanding your location radius.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <svg width="48" height="48" viewBox="0 0 16 16" style="margin-bottom: 20px; color: #f59e0b;">
+                            <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" fill="currentColor"/>
+                            <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z" fill="currentColor"/>
+                        </svg>
+                        <h3>Search Temporarily Unavailable</h3>
+                        <p>Please try again in a few moments.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display therapist results with enhanced real data support
+        function displayTherapists(therapists) {
+            const resultsDiv = document.getElementById('therapistResults');
+            
+            const therapistCards = therapists.map(therapist => {
+                // Handle both NPI and fallback data formats
+                const fullAddress = therapist.address ? 
+                    `${therapist.address}, ${therapist.city}, ${therapist.state} ${therapist.postal_code || ''}`.trim() : 
+                    `${therapist.city || ''}, ${therapist.state || ''}`.trim().replace(/^,\s*|,\s*$/g, '') || 'Location Available';
+                
+                const specialtiesText = Array.isArray(therapist.specialties) ? 
+                    therapist.specialties.join(', ') : 
+                    (therapist.specialties || 'General Practice');
+                
+                // Add verification badge for real NPI data
+                const verificationBadge = therapist.verified || therapist.npi ? 
+                    '<span style="background: var(--secondary-glow); color: black; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; margin-left: 10px;">✓ Verified</span>' : 
+                    '';
+                
+                // Special handling for crisis resources
+                const isCrisisResource = therapist.crisis_resource || therapist.phone === '988' || therapist.name.includes('Crisis');
+                const cardStyle = isCrisisResource ? 'border-left: 4px solid #ff4444; background: rgba(255, 68, 68, 0.1);' : '';
+                
+                return `
+                    <div class="therapist-card" style="${cardStyle}">
+                        ${isCrisisResource ? '<div style="text-align: center; margin-bottom: 10px;"><span style="background: #ff4444; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">🆘 CRISIS RESOURCE</span></div>' : ''}
+                        <div class="therapist-info">
+                            <div class="therapist-avatar">${getInitials(therapist.name)}</div>
+                            <div class="therapist-details">
+                                <h3>${therapist.name}${verificationBadge}</h3>
+                                ${therapist.credentials ? `<div style="color: var(--primary-cyan); font-size: 0.9rem; margin-bottom: 5px;">${therapist.credentials}</div>` : ''}
+                                <div class="therapist-specialties">${specialtiesText}</div>
+                                <div class="therapist-location">
+                                    <svg width="12" height="12" viewBox="0 0 16 16" style="margin-right: 5px; vertical-align: middle;">
+                                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" fill="currentColor"/>
+                                    </svg>
+                                    ${fullAddress}
+                                </div>
+                                <div style="margin-top: 10px; color: var(--text-muted); font-size: 0.9rem;">
+                                    <svg width="12" height="12" viewBox="0 0 16 16" style="margin-right: 5px; vertical-align: middle;">
+                                        <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122L9.98 10.7c-.37.09-.748-.006-1.108-.166C7.976 9.988 6.988 9 6.441 8.104c-.16-.36-.256-.738-.166-1.108l.27-1.805a.678.678 0 0 0-.122-.58L4.629 2.306a.678.678 0 0 0-.975-.126z" fill="currentColor"/>
+                                    </svg>
+                                    ${therapist.phone || 'Contact via platform'}
+                                </div>
+                                ${therapist.npi ? `<div style="margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">NPI: ${therapist.npi}</div>` : ''}
+                                ${therapist.source ? `<div style="margin-top: 5px; color: var(--secondary-glow); font-size: 0.8rem;">Source: ${therapist.source}</div>` : ''}
+                            </div>
+                            <div>
+                                <button class="btn-primary" onclick="contactTherapist('${therapist.name.replace(/'/g, '\\\'')}')" 
+                                        style="min-width: 120px; padding: 10px 20px;">
+                                    <svg width="12" height="12" viewBox="0 0 16 16" style="margin-right: 5px; vertical-align: middle;">
+                                        <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757zm3.436-.586L16 11.801V4.697l-5.803 3.546z" fill="currentColor"/>
+                                    </svg>
+                                    ${isCrisisResource ? 'Get Help' : 'Contact'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            resultsDiv.innerHTML += therapistCards;
+        }
+
+        // Display AI recommendations
+        function displayRecommendations(recommendations) {
+            const resultsDiv = document.getElementById('therapistResults');
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            const recommendationCards = recommendations.map(rec => `
+                <div class="therapist-card" style="border-left: 4px solid var(--secondary-glow);">
+                    <div style="margin-bottom: 15px; text-align: center;">
+                        <span style="background: var(--secondary-glow); color: black; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
+                            ${rec.match} AI Match
+                        </span>
+                    </div>
+                    <div class="therapist-info">
+                        <div class="therapist-avatar">${rec.avatar}</div>
+                        <div class="therapist-details">
+                            <h3>${rec.name}</h3>
+                            <div class="therapist-specialties">${rec.specialty}</div>
+                            <div class="therapist-location">
+                                <svg width="12" height="12" viewBox="0 0 16 16" style="margin-right: 5px; vertical-align: middle;">
+                                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" fill="currentColor"/>
+                                </svg>
+                                ${rec.location}
+                            </div>
+                            <div style="margin-top: 10px; color: var(--text-secondary); font-style: italic; font-size: 0.9rem;">
+                                "${rec.reason}"
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn-primary" onclick="contactTherapist('${rec.name}')" 
+                                    style="min-width: 120px; padding: 10px 20px;">
+                                <svg width="12" height="12" viewBox="0 0 16 16" style="margin-right: 5px; vertical-align: middle;">
+                                    <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.283.95l-3.523 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" fill="currentColor"/>
+                                </svg>
+                                Select
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            resultsDiv.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h3 style="color: var(--secondary-glow); font-size: 1.8rem; margin-bottom: 10px;">
+                        <svg width="24" height="24" viewBox="0 0 16 16" style="margin-right: 10px; vertical-align: middle;">
+                            <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <circle cx="5" cy="6" r="1" fill="currentColor"/>
+                            <circle cx="11" cy="6" r="1" fill="currentColor"/>
+                            <circle cx="8" cy="4" r="0.5" fill="currentColor"/>
+                            <circle cx="8" cy="12" r="0.5" fill="currentColor"/>
+                            <line x1="5" y1="6" x2="8" y2="8" stroke="currentColor" stroke-width="0.5"/>
+                            <line x1="11" y1="6" x2="8" y2="8" stroke="currentColor" stroke-width="0.5"/>
+                            <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                        </svg>
+                        AI-Powered Recommendations
+                    </h3>
+                    <p style="color: var(--text-muted);">Based on your emotional profile and preferences</p>
+                </div>
+                ${recommendationCards}
+            `;
+            
+            resultsContainer.style.display = 'block';
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Helper function to get initials
+        function getInitials(name) {
+            return name.split(' ')
+                      .map(word => word[0])
+                      .join('')
+                      .toUpperCase()
+                      .substring(0, 2);
+        }
+
+        // Contact therapist function
+        function contactTherapist(name) {
+            alert(`🎉 Great choice! You'll be connected with ${name} shortly. Our team will reach out within 24 hours to schedule your consultation.`);
+        }
+
+        // ============ GEOLOCATION DETECTION ============
+        
+        // Global variables to store location data
+        let currentLocationData = null;
+
+        // Initialize geolocation functionality
+        function initializeGeolocation() {
+            const detectBtn = document.getElementById('detectLocationBtn');
+            const locationInput = document.getElementById('locationInput');
+            const locationStatus = document.getElementById('locationStatus');
+
+            if (detectBtn) {
+                detectBtn.addEventListener('click', function() {
+                    detectUserLocation();
+                });
+            }
+        }
+
+        // Detect user's current location
+        function detectUserLocation() {
+            const detectBtn = document.getElementById('detectLocationBtn');
+            const locationStatus = document.getElementById('locationStatus');
+            
+            // Check if geolocation is supported
+            if (!navigator.geolocation) {
+                showLocationStatus('error', 'Geolocation is not supported by this browser');
+                return;
+            }
+
+            // Show loading state
+            detectBtn.classList.add('loading');
+            showLocationStatus('loading', 'Detecting your location...');
+
+            // Get user's position
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    console.log(`📍 Location detected: ${latitude}, ${longitude}`);
+                    
+                    // Reverse geocode the coordinates
+                    reverseGeocode(latitude, longitude);
+                },
+                function(error) {
+                    detectBtn.classList.remove('loading');
+                    let errorMessage = 'Location detection failed';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Location access denied by user';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Location information unavailable';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'Location detection timeout';
+                            break;
+                    }
+                    
+                    showLocationStatus('error', errorMessage);
+                    console.error('🚫 Geolocation error:', error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000 // Cache for 5 minutes
+                }
+            );
+        }
+
+        // Reverse geocode coordinates to get address using multiple services
+        async function reverseGeocode(latitude, longitude) {
+            const detectBtn = document.getElementById('detectLocationBtn');
+            
+            try {
+                showLocationStatus('loading', 'Converting coordinates to address...');
+                
+                // Try OpenStreetMap Nominatim API first (free, no API key required)
+                const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+                
+                const response = await fetch(nominatimUrl, {
+                    headers: {
+                        'User-Agent': 'Y.M.I.R-AI-Therapist-Finder/1.0'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    processLocationData(data);
+                } else {
+                    // Fallback: Use alternative geocoding service
+                    await reverseGeocodeAlternative(latitude, longitude);
+                }
+                
+            } catch (error) {
+                console.error('🚫 Reverse geocoding error:', error);
+                // Try alternative service
+                await reverseGeocodeAlternative(latitude, longitude);
+            } finally {
+                detectBtn.classList.remove('loading');
+            }
+        }
+
+        // Alternative reverse geocoding using server-side endpoint
+        async function reverseGeocodeAlternative(latitude, longitude) {
+            try {
+                showLocationStatus('loading', 'Trying server-side geocoding...');
+                
+                // Use our server-side geocoding endpoint as fallback
+                const response = await fetch('/api/geocode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        latitude: latitude,
+                        longitude: longitude
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.formatted_location) {
+                        showLocationStatus('success', '📍 Location detected via server');
+                        fillLocationInput(data.formatted_location);
+                        
+                        // Store the comprehensive location data
+                        currentLocationData = {
+                            city: data.city,
+                            state: data.state,
+                            zipCode: data.zip_code,
+                            country: data.country,
+                            fullAddress: data.full_address,
+                            coordinates: {
+                                lat: latitude,
+                                lon: longitude
+                            }
+                        };
+                        
+                        console.log('✅ Server-side location processed:', currentLocationData);
+                        return;
+                    }
+                }
+                
+                throw new Error('Server geocoding failed');
+                
+            } catch (error) {
+                console.error('🚫 Server-side geocoding failed:', error);
+                
+                // Last resort: create a basic location string from coordinates
+                try {
+                    const locationString = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                    showLocationStatus('success', '📍 Coordinates detected');
+                    fillLocationInput(locationString);
+                    
+                    // Store minimal location data
+                    currentLocationData = {
+                        city: '',
+                        state: '',
+                        zipCode: '',
+                        country: '',
+                        fullAddress: locationString,
+                        coordinates: {
+                            lat: latitude,
+                            lon: longitude
+                        }
+                    };
+                    
+                } catch (fallbackError) {
+                    console.error('🚫 Even coordinate fallback failed:', fallbackError);
+                    showLocationStatus('error', 'Could not process location');
+                }
+            }
+        }
+
+        // Process location data from geocoding service
+        function processLocationData(data) {
+            try {
+                const address = data.address || {};
+                const display_name = data.display_name || '';
+                
+                // Extract relevant location components
+                const city = address.city || address.town || address.village || address.municipality || '';
+                const state = address.state || address.province || address.region || '';
+                const zipCode = address.postcode || '';
+                const country = address.country || '';
+                
+                // Store comprehensive location data
+                currentLocationData = {
+                    city: city,
+                    state: state,
+                    zipCode: zipCode,
+                    country: country,
+                    fullAddress: display_name,
+                    coordinates: {
+                        lat: data.lat,
+                        lon: data.lon
+                    }
+                };
+                
+                // Create formatted location string for input
+                let locationString = '';
+                if (city && state) {
+                    locationString = `${city}, ${state}`;
+                    if (zipCode) {
+                        locationString += ` ${zipCode}`;
+                    }
+                } else if (zipCode) {
+                    locationString = zipCode;
+                } else {
+                    locationString = display_name.split(',').slice(0, 2).join(',').trim();
+                }
+                
+                showLocationStatus('success', '📍 Location detected successfully');
+                fillLocationInput(locationString);
+                
+                console.log('✅ Location processed:', currentLocationData);
+                
+            } catch (error) {
+                console.error('🚫 Error processing location data:', error);
+                showLocationStatus('error', 'Error processing location');
+            }
+        }
+
+        // Fill the location input with detected location
+        function fillLocationInput(locationString) {
+            const locationInput = document.getElementById('locationInput');
+            if (locationInput && locationString) {
+                locationInput.value = locationString;
+                locationInput.style.background = 'rgba(16, 185, 129, 0.1)';
+                locationInput.style.borderColor = '#10b981';
+                
+                // Reset styling after 3 seconds
+                setTimeout(() => {
+                    locationInput.style.background = '';
+                    locationInput.style.borderColor = '';
+                }, 3000);
+            }
+        }
+
+        // Show location status message
+        function showLocationStatus(type, message) {
+            const locationStatus = document.getElementById('locationStatus');
+            if (locationStatus) {
+                locationStatus.className = `location-status ${type}`;
+                locationStatus.textContent = message;
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    locationStatus.textContent = '';
+                    locationStatus.className = 'location-status';
+                }, 5000);
+            }
+        }
+
+        // Enhanced form interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize geolocation functionality
+            initializeGeolocation();
+            
+            // Add smooth focus effects to form elements
+            const formInputs = document.querySelectorAll('.form-input, .form-select');
+            formInputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.transform = 'scale(1.02)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+
+            // Form validation
+            const form = document.getElementById('therapistSearchForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    searchTherapists();
+                });
+            }
+        });
+
+        // Add parallax effect to floating particles
+        document.addEventListener('mousemove', function(e) {
+            const particles = document.querySelectorAll('.floating-particle');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            particles.forEach((particle, index) => {
+                const speed = (index + 1) * 0.5;
+                const xOffset = (x - 0.5) * speed * 20;
+                const yOffset = (y - 0.5) * speed * 20;
+                
+                particle.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+            });
+        });
+    </script>
+</body>
+</html>

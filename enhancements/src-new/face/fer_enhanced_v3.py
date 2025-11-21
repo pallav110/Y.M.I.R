@@ -394,7 +394,12 @@ class EnhancedEmotionDetector:
         
         try:
             print("📷 Starting camera system...")
-            self.cap = cv2.VideoCapture(0)
+            
+            # Try DirectShow backend first (Windows)
+            self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            if not self.cap.isOpened():
+                print("🔄 DirectShow failed, trying default backend...")
+                self.cap = cv2.VideoCapture(0)
             
             if not self.cap.isOpened():
                 print("❌ Camera not detected!")
@@ -408,8 +413,15 @@ class EnhancedEmotionDetector:
             
             # Additional performance optimizations
             self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))  # MJPEG for better performance
-            self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)  # Disable auto-exposure for stable framerate
-            self.cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)  # Disable autofocus for performance
+            
+            # 🔆 DO NOT modify camera hardware settings - causes driver corruption
+            # Keep camera at default settings to prevent brightness/contrast corruption
+            
+            # Focus settings
+            try:
+                self.cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)  # Enable autofocus for clarity
+            except:
+                pass
             
             # Try to reduce latency
             try:

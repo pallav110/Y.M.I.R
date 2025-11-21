@@ -103,6 +103,11 @@ class WebEmotionSystem:
             'start_time': None
         }
         
+        # 🎯 Analysis control - enable by default for emotion detection
+        self.analysis_mode = True  # True = continuous analysis, False = raw feed only
+        self.last_analysis_request = time.time()
+        print(f"🎭 Emotion analysis mode: {'ENABLED' if self.analysis_mode else 'DISABLED'}")
+        
         # Storage configuration
         self.storage_enabled = True
         self.offline_mode = False
@@ -132,7 +137,9 @@ class WebEmotionSystem:
     def set_session_id(self, session_id: str):
         """Set the session ID for emotion storage"""
         if session_id:
+            old_session_id = self.session_id
             self.session_id = session_id
+            print(f"🔍 DEBUG: Session ID changed from '{old_session_id}' to '{session_id}'")
             # 🔥 CRITICAL: Also update Enhanced Detector session ID
             if hasattr(self, 'detector') and self.detector and hasattr(self.detector, 'firebase_manager'):
                 if self.detector.firebase_manager:
@@ -195,14 +202,31 @@ class WebEmotionSystem:
             return False
     
     def stop_camera(self):
-        """Stop camera capture"""
+        """Stop camera capture with proper resource cleanup"""
         self.is_running = False
         
-        if self.detector and self.detector.cap:
-            self.detector.cap.release()
-            self.detector.cap = None
+        # Clear current frame to stop video feed
+        with self.frame_lock:
+            self.current_frame = None
             
-        # Camera stopped
+        # Stop and release camera
+        if self.detector and self.detector.cap:
+            try:
+                self.detector.cap.release()
+                self.detector.cap = None
+                # Allow time for camera to fully release
+                time.sleep(0.1)
+            except Exception as e:
+                print(f"Camera release error: {e}")
+        
+        # Clear emotions and reset state
+        self.current_emotions.clear()
+        
+        # Force garbage collection for OpenCV resources
+        import gc
+        gc.collect()
+        
+        # Camera stopped with full cleanup
     
     def _process_frames_with_full_detector(self):
         """🚀 OPTIMIZED: Process camera frames using the FULL enhanced detector with performance optimizations"""
@@ -236,7 +260,7 @@ class WebEmotionSystem:
                 ret, frame = self.detector.cap.read()
                 if not ret:
                     # Failed to read frame
-                    time.sleep(0.01)  # Brief pause before retry
+                    time.sleep(0.1)  # Longer pause to prevent CPU overload
                     continue
                 
                 # Flip frame horizontally for mirror effect
@@ -250,9 +274,17 @@ class WebEmotionSystem:
                 if hasattr(self, 'current_fps') and self.current_fps < 15 and frame_count % 2 == 0:
                     continue  # Skip every other frame for performance
                 
-                # 🚀 Use FULL enhanced detector processing (includes emotion analysis)
-                processed_frame = self.detector.process_frame(frame)
-                # Note: processed_frame includes all visualizations and emotion analysis
+                # 🎯 Only process frame if analysis is requested
+                if self.analysis_mode:
+                    processed_frame = self.detector.process_frame(frame)
+                    # Note: processed_frame includes all visualizations and emotion analysis
+                    if frame_count % 120 == 0:  # Log every 4 seconds at 30fps
+                        print(f"🎭 Emotion analysis active - frame {frame_count}")
+                else:
+                    # Raw frame - no processing for smooth feed
+                    processed_frame = frame.copy()
+                    if frame_count % 120 == 0:
+                        print(f"📹 Raw video mode - frame {frame_count}")
                 
                 # Track processing time for performance monitoring
                 processing_time = time.time() - frame_start_time
@@ -367,6 +399,10 @@ class WebEmotionSystem:
                                         'session_id': self.session_id
                                         # NO 'role' field - this marks it as facial emotion
                                     }
+                                    
+                                    print(f"🔍 DEBUG: Storing facial emotion with session_id: {self.session_id}")
+                                    dominant = max(emotion_result['emotions'].items(), key=lambda x: x[1])
+                                    print(f"🔍 DEBUG: Emotion data: {dominant[0]} ({dominant[1]:.3f})")
                                     
                                     # Store in emotion_readings collection for combiner
                                     doc_ref = db.collection('emotion_readings').document()
@@ -751,38 +787,52 @@ def index():
 
 @app.route('/video_feed')
 def video_feed():
-    """🚀 OPTIMIZED Video streaming route for smooth 60 FPS performance"""
+    """🚀 OPTIMIZED Video streaming route with proper cleanup"""
     def generate():
         last_frame_time = time.time()
         frame_interval = 1.0 / 60.0  # Target 60 FPS
         frame_count = 0
+        max_idle_frames = 600  # Stop after 10 seconds of no camera
         
-        while True:
-            current_time = time.time()
-            frame_count += 1
-            
-            # Get frame from optimized buffer
-            frame_bytes = web_system.get_current_frame_jpeg_optimized()
-            
-            if frame_bytes:
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-            else:
-                # Send minimal black frame for startup
-                if frame_count <= 10:  # Only send black frames during startup
-                    black_frame = np.zeros((240, 320, 3), dtype=np.uint8)  # Smaller startup frame
-                    ret, buffer = cv2.imencode('.jpg', black_frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
-                    if ret:
-                        yield (b'--frame\r\n'
-                               b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-            
-            # Dynamic frame rate control - adapt to system performance
-            elapsed = current_time - last_frame_time
-            if elapsed < frame_interval:
-                sleep_time = max(0.001, frame_interval - elapsed)  # Minimum 1ms sleep
-                time.sleep(sleep_time)
-            
-            last_frame_time = time.time()
+        try:
+            while frame_count < max_idle_frames:
+                current_time = time.time()
+                frame_count += 1
+                
+                # Exit if camera system is stopped
+                if not web_system.is_running:
+                    break
+                
+                # Get frame from optimized buffer
+                frame_bytes = web_system.get_current_frame_jpeg_optimized()
+                
+                if frame_bytes:
+                    frame_count = 0  # Reset idle counter when we have frames
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                else:
+                    # Send minimal black frame for startup
+                    if frame_count <= 10:  # Only send black frames during startup
+                        black_frame = np.zeros((240, 320, 3), dtype=np.uint8)  # Smaller startup frame
+                        ret, buffer = cv2.imencode('.jpg', black_frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
+                        if ret:
+                            yield (b'--frame\r\n'
+                                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+                
+                # Dynamic frame rate control - adapt to system performance
+                elapsed = current_time - last_frame_time
+                if elapsed < frame_interval:
+                    sleep_time = max(0.001, frame_interval - elapsed)  # Minimum 1ms sleep
+                    time.sleep(sleep_time)
+                
+                last_frame_time = time.time()
+                
+        except GeneratorExit:
+            # Client disconnected - clean exit
+            pass
+        except Exception as e:
+            # Unexpected error - log and exit gracefully
+            print(f"Video feed error: {e}")
     
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -822,6 +872,31 @@ def api_stop_camera():
 def api_emotions():
     """API endpoint to get current emotion data"""
     return jsonify(web_system.get_emotion_data())
+
+@app.route('/api/enable_analysis', methods=['POST'])
+def api_enable_analysis():
+    """API endpoint to enable/disable emotion analysis mode"""
+    try:
+        data = request.get_json()
+        enable = data.get('enable', False)
+        analysis_type = data.get('analysis_type', 'full')
+        
+        print(f"🎯 Analysis mode toggle: {enable} (type: {analysis_type})")
+        
+        # Toggle analysis mode
+        web_system.analysis_mode = enable
+        web_system.last_analysis_request = time.time()
+        
+        return jsonify({
+            'success': True,
+            'analysis_mode': web_system.analysis_mode,
+            'analysis_type': analysis_type,
+            'message': f'Analysis mode {"enabled" if enable else "disabled"}'
+        })
+        
+    except Exception as e:
+        print(f"Error toggling analysis: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/analytics')
 def api_analytics():
@@ -885,6 +960,612 @@ def api_status():
             'buffer_size': len(web_system.readings_buffer)
         }
     })
+
+@app.route('/api/camera_debug')
+def api_camera_debug():
+    """Debug endpoint to check camera status"""
+    camera_info = {
+        'camera_initialized': False,
+        'camera_opened': False,
+        'frame_available': False,
+        'error': None,
+        'diagnostics': {}
+    }
+    
+    try:
+        if web_system.detector and web_system.detector.cap:
+            camera_info['camera_initialized'] = True
+            camera_info['camera_opened'] = web_system.detector.cap.isOpened()
+            
+            if web_system.current_frame is not None:
+                camera_info['frame_available'] = True
+                camera_info['frame_shape'] = web_system.current_frame.shape
+                
+                # Check if frame is all black/grey
+                frame_mean = np.mean(web_system.current_frame)
+                frame_std = np.std(web_system.current_frame)
+                camera_info['diagnostics']['frame_mean'] = float(frame_mean)
+                camera_info['diagnostics']['frame_std'] = float(frame_std)
+                
+                if frame_std < 5:  # Very low variation = likely no signal
+                    camera_info['diagnostics']['issue'] = 'No video signal - frame appears blank/grey'
+                elif frame_mean < 10:
+                    camera_info['diagnostics']['issue'] = 'Very dark image - check lighting or exposure'
+                else:
+                    camera_info['diagnostics']['status'] = 'Frame looks normal'
+                
+        # Try to get frame dimensions if available
+        if web_system.detector and web_system.detector.cap and web_system.detector.cap.isOpened():
+            width = web_system.detector.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+            height = web_system.detector.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+            fps = web_system.detector.cap.get(cv2.CAP_PROP_FPS)
+            brightness = web_system.detector.cap.get(cv2.CAP_PROP_BRIGHTNESS)
+            contrast = web_system.detector.cap.get(cv2.CAP_PROP_CONTRAST)
+            exposure = web_system.detector.cap.get(cv2.CAP_PROP_EXPOSURE)
+            
+            camera_info['camera_properties'] = {
+                'width': int(width),
+                'height': int(height),
+                'fps': fps,
+                'brightness': brightness,
+                'contrast': contrast,
+                'exposure': exposure
+            }
+            
+    except Exception as e:
+        camera_info['error'] = str(e)
+    
+    return jsonify(camera_info)
+
+@app.route('/api/camera_test_different_indices', methods=['POST'])
+def api_camera_test_indices():
+    """Test different camera indices to find working camera"""
+    results = {}
+    
+    for i in range(5):  # Test cameras 0-4
+        try:
+            print(f"Testing camera index {i}...")
+            cap = cv2.VideoCapture(i)
+            
+            if cap.isOpened():
+                ret, frame = cap.read()
+                if ret and frame is not None:
+                    frame_mean = np.mean(frame)
+                    frame_std = np.std(frame)
+                    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+                    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+                    
+                    results[f'camera_{i}'] = {
+                        'available': True,
+                        'frame_captured': True,
+                        'frame_mean': float(frame_mean),
+                        'frame_std': float(frame_std),
+                        'resolution': f"{int(width)}x{int(height)}",
+                        'status': 'Working' if frame_std > 5 else 'No signal (grey/black)'
+                    }
+                else:
+                    results[f'camera_{i}'] = {
+                        'available': True,
+                        'frame_captured': False,
+                        'status': 'Cannot capture frames'
+                    }
+            else:
+                results[f'camera_{i}'] = {
+                    'available': False,
+                    'status': 'Camera not accessible'
+                }
+            
+            cap.release()
+            
+        except Exception as e:
+            results[f'camera_{i}'] = {
+                'available': False,
+                'error': str(e)
+            }
+    
+    return jsonify({
+        'success': True,
+        'camera_test_results': results,
+        'recommendation': 'Use camera index with highest frame_std (>5) and Working status'
+    })
+
+@app.route('/api/camera_switch/<int:camera_index>', methods=['POST'])  
+def api_camera_switch(camera_index):
+    """Switch to a different camera index"""
+    try:
+        # Stop current camera
+        web_system.stop_camera()
+        time.sleep(1)
+        
+        # Update camera index in detector
+        if web_system.detector:
+            # Try new camera index
+            new_cap = cv2.VideoCapture(camera_index)
+            
+            if new_cap.isOpened():
+                ret, test_frame = new_cap.read()
+                if ret and test_frame is not None:
+                    frame_std = np.std(test_frame)
+                    if frame_std > 5:  # Good signal
+                        # Replace the old camera
+                        if web_system.detector.cap:
+                            web_system.detector.cap.release()
+                        web_system.detector.cap = new_cap
+                        
+                        # Configure new camera  
+                        new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                        new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                        new_cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.75)
+                        new_cap.set(cv2.CAP_PROP_BRIGHTNESS, 0.6)
+                        new_cap.set(cv2.CAP_PROP_CONTRAST, 0.6)
+                        
+                        # Restart frame processing
+                        web_system.start_camera()
+                        
+                        return jsonify({
+                            'success': True,
+                            'message': f'Switched to camera {camera_index}',
+                            'frame_quality': float(frame_std)
+                        })
+                    else:
+                        new_cap.release()
+                        return jsonify({
+                            'success': False,
+                            'message': f'Camera {camera_index} has no video signal'
+                        })
+                else:
+                    new_cap.release()
+                    return jsonify({
+                        'success': False, 
+                        'message': f'Camera {camera_index} cannot capture frames'
+                    })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': f'Camera {camera_index} not available'
+                })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@app.route('/api/camera_reset', methods=['POST'])
+def api_camera_reset():
+    """Reset and reinitialize camera with different settings"""
+    try:
+        # Stop current camera completely
+        if web_system.detector and web_system.detector.cap:
+            web_system.detector.cap.release()
+            web_system.detector.cap = None
+        
+        web_system.stop_camera()
+        time.sleep(2)  # Give time for release
+        
+        # Try different initialization approaches
+        approaches = [
+            {'backend': cv2.CAP_DSHOW, 'name': 'DirectShow'},
+            {'backend': cv2.CAP_MSMF, 'name': 'Media Foundation'},
+            {'backend': cv2.CAP_ANY, 'name': 'Default'},
+        ]
+        
+        for approach in approaches:
+            try:
+                print(f"🔄 Trying {approach['name']} backend...")
+                new_cap = cv2.VideoCapture(0, approach['backend'])
+                
+                if new_cap.isOpened():
+                    # Test frame capture
+                    ret, frame = new_cap.read()
+                    if ret and frame is not None:
+                        frame_std = np.std(frame)
+                        print(f"📊 Frame quality: {frame_std}")
+                        
+                        if frame_std > 1:  # Even minimal signal is better than none
+                            # Configure camera
+                            new_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                            new_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                            new_cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                            
+                            # Try to improve visibility
+                            new_cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.75)
+                            new_cap.set(cv2.CAP_PROP_BRIGHTNESS, 128)  # Try different brightness value
+                            new_cap.set(cv2.CAP_PROP_CONTRAST, 64)    # Try different contrast
+                            new_cap.set(cv2.CAP_PROP_GAMMA, 100)      # Adjust gamma
+                            
+                            # Replace camera
+                            web_system.detector.cap = new_cap
+                            
+                            # Restart system
+                            web_system.start_camera()
+                            
+                            return jsonify({
+                                'success': True,
+                                'message': f'Camera reset successful with {approach["name"]} backend',
+                                'frame_quality': float(frame_std),
+                                'backend': approach['name']
+                            })
+                
+                new_cap.release()
+                
+            except Exception as e:
+                print(f"❌ {approach['name']} backend failed: {e}")
+                continue
+        
+        return jsonify({
+            'success': False,
+            'message': 'All camera backends failed',
+            'suggestion': 'Check camera permissions and physical access'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+# 🎯 IMAGE PROCESSING TECHNIQUES ENDPOINTS
+
+@app.route('/api/process_image', methods=['POST'])
+def api_process_image():
+    """🎨 Unified Image Processing Endpoint for Frontend"""
+    try:
+        # Get analysis type from form data
+        analysis_type = request.form.get('analysis_type', 'edge')
+        
+        # Thread-safe frame access
+        with web_system.frame_lock:
+            if web_system.current_frame is None:
+                return jsonify({'success': False, 'error': 'No frame available - start camera first'})
+            frame = web_system.current_frame.copy()
+        
+        # Process image for different analysis types
+        results = {}
+        
+        # Always do edge detection
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        edges = cv2.Canny(blurred, 50, 150)
+        edges_bgr = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+        
+        # Always do color analysis (HSV)
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        
+        # Enhanced processing (contrast/brightness)
+        enhanced = cv2.convertScaleAbs(frame, alpha=1.2, beta=30)
+        
+        # Face detection
+        try:
+            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            gray_for_faces = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray_for_faces, 1.1, 4)
+            
+            face_detected = frame.copy()
+            for (x, y, w, h) in faces:
+                cv2.rectangle(face_detected, (x, y), (x+w, y+h), (255, 0, 0), 2)
+                
+        except Exception as face_error:
+            print(f"Face detection error: {face_error}")
+            face_detected = frame.copy()
+            faces = []
+        
+        # Encode all results
+        def encode_image(img):
+            ret, buffer = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            if ret:
+                return f'data:image/jpeg;base64,{base64.b64encode(buffer).decode("utf-8")}'
+            return None
+        
+        # Build response based on analysis_type
+        response_data = {
+            'success': True,
+            'analysis_type': analysis_type,
+            'processing_info': {
+                'faces_detected': len(faces),
+                'enhancement_applied': True,
+                'edge_detection': 'Canny'
+            }
+        }
+        
+        print(f"🎨 Processing image analysis_type: {analysis_type}")
+        print(f"📊 Frame shape: {frame.shape}, Faces detected: {len(faces)}")
+        
+        if analysis_type == 'edge' or analysis_type == 'full':
+            edges_encoded = encode_image(edges_bgr)
+            response_data['edges'] = edges_encoded
+            print(f"✅ Edges encoded: {'Yes' if edges_encoded else 'Failed'}")
+            
+        if analysis_type == 'color' or analysis_type == 'full':
+            hsv_encoded = encode_image(hsv)
+            response_data['hsv'] = hsv_encoded
+            print(f"✅ HSV encoded: {'Yes' if hsv_encoded else 'Failed'}")
+            
+        if analysis_type == 'face' or analysis_type == 'full':
+            face_encoded = encode_image(face_detected)
+            response_data['face_detected'] = face_encoded
+            print(f"✅ Face detection encoded: {'Yes' if face_encoded else 'Failed'}")
+            
+        if analysis_type == 'advanced' or analysis_type == 'full':
+            enhanced_encoded = encode_image(enhanced)
+            response_data['enhanced'] = enhanced_encoded
+            print(f"✅ Enhanced encoded: {'Yes' if enhanced_encoded else 'Failed'}")
+        
+        # For backward compatibility, also include result_image
+        if analysis_type == 'edge':
+            response_data['result_image'] = encode_image(edges_bgr)
+        elif analysis_type == 'color':
+            response_data['result_image'] = encode_image(hsv)
+        elif analysis_type == 'face':
+            response_data['result_image'] = encode_image(face_detected)
+        else:
+            response_data['result_image'] = encode_image(enhanced)
+        
+        # Log final response structure
+        result_keys = [k for k in response_data.keys() if k not in ['success', 'analysis_type', 'processing_info']]
+        print(f"📤 Returning response with keys: {result_keys}")
+        
+        return jsonify(response_data)
+            
+    except Exception as e:
+        print(f"Image processing error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/process/edge_detection', methods=['POST'])
+def api_edge_detection():
+    """🔍 Edge Detection Processing"""
+    try:
+        # Thread-safe frame access
+        with web_system.frame_lock:
+            if web_system.current_frame is None:
+                return jsonify({'success': False, 'message': 'No frame available - start camera first'})
+            frame = web_system.current_frame.copy()
+        
+        # Convert to grayscale
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        # Apply Gaussian blur
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        
+        # Apply Canny edge detection
+        edges = cv2.Canny(blurred, 50, 150)
+        
+        # Convert back to BGR for display
+        edges_bgr = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+        
+        # Encode as JPEG
+        ret, buffer = cv2.imencode('.jpg', edges_bgr, [cv2.IMWRITE_JPEG_QUALITY, 80])
+        if ret:
+            encoded_image = base64.b64encode(buffer).decode('utf-8')
+            return jsonify({
+                'success': True,
+                'technique': 'Edge Detection (Canny)',
+                'result_image': f'data:image/jpeg;base64,{encoded_image}',
+                'details': {
+                    'algorithm': 'Canny Edge Detection',
+                    'parameters': 'Gaussian Blur (5x5), Thresholds: 50-150'
+                }
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Failed to encode image'})
+    
+    except Exception as e:
+        print(f"Edge detection error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/process/color_analysis', methods=['POST'])
+def api_color_analysis():
+    """🎨 Color Analysis Processing"""
+    try:
+        # Thread-safe frame access
+        with web_system.frame_lock:
+            if web_system.current_frame is None:
+                return jsonify({'success': False, 'message': 'No frame available - start camera first'})
+            frame = web_system.current_frame.copy()
+        
+        # Color space conversions
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
+        
+        # Calculate color statistics
+        b_mean, g_mean, r_mean = cv2.mean(frame)[:3]
+        
+        # Create color analysis visualization
+        height, width = frame.shape[:2]
+        analysis_img = np.zeros((height, width*2, 3), dtype=np.uint8)
+        
+        # Original image on left
+        analysis_img[:, :width] = frame
+        
+        # Color channels on right
+        analysis_img[:height//3, width:] = frame[:height//3, :, 2:3]  # Red channel
+        analysis_img[height//3:2*height//3, width:] = frame[height//3:2*height//3, :, 1:2]  # Green
+        analysis_img[2*height//3:, width:] = frame[2*height//3:, :, 0:1]  # Blue
+        
+        # Add text overlays
+        cv2.putText(analysis_img, 'Original', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.putText(analysis_img, 'Red Channel', (width + 10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.putText(analysis_img, 'Green Channel', (width + 10, height//3 + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        cv2.putText(analysis_img, 'Blue Channel', (width + 10, 2*height//3 + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        
+        # Encode as JPEG
+        ret, buffer = cv2.imencode('.jpg', analysis_img, [cv2.IMWRITE_JPEG_QUALITY, 80])
+        if ret:
+            encoded_image = base64.b64encode(buffer).decode('utf-8')
+            return jsonify({
+                'success': True,
+                'technique': 'Color Analysis',
+                'result_image': f'data:image/jpeg;base64,{encoded_image}',
+                'details': {
+                    'color_means': {'red': float(r_mean), 'green': float(g_mean), 'blue': float(b_mean)},
+                    'analysis': 'RGB channel separation and color statistics'
+                }
+            })
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/process/face_analysis', methods=['POST'])
+def api_face_analysis():
+    """👤 Face Analysis Processing"""
+    try:
+        # Thread-safe frame access
+        with web_system.frame_lock:
+            if web_system.current_frame is None:
+                return jsonify({'success': False, 'message': 'No frame available - start camera first'})
+            frame = web_system.current_frame.copy()
+        
+        # Temporarily enable analysis mode for this request
+        old_mode = web_system.analysis_mode
+        web_system.analysis_mode = True
+        
+        # Get MediaPipe face detection results
+        if web_system.detector and hasattr(web_system.detector, 'mediapipe_processor'):
+            mp_results = web_system.detector.mediapipe_processor.process_frame(frame)
+            faces = mp_results.get('faces', [])
+            
+            # Draw face detection results
+            for face in faces:
+                bbox = face.get('bbox', [0, 0, 0, 0])
+                if len(bbox) == 4:
+                    x, y, w, h = bbox
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    cv2.putText(frame, f"Face (Quality: {face.get('quality_score', 0):.2f})", 
+                              (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+        
+        # Restore analysis mode
+        web_system.analysis_mode = old_mode
+        
+        # Encode as JPEG
+        ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+        if ret:
+            encoded_image = base64.b64encode(buffer).decode('utf-8')
+            return jsonify({
+                'success': True,
+                'technique': 'Face Analysis',
+                'result_image': f'data:image/jpeg;base64,{encoded_image}',
+                'details': {
+                    'faces_detected': len(faces) if 'faces' in locals() else 0,
+                    'algorithm': 'MediaPipe Face Detection'
+                }
+            })
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/process/advanced_processing', methods=['POST'])
+def api_advanced_processing():
+    """📸 Advanced Image Processing"""
+    try:
+        # Thread-safe frame access
+        with web_system.frame_lock:
+            if web_system.current_frame is None:
+                return jsonify({'success': False, 'message': 'No frame available - start camera first'})
+            frame = web_system.current_frame.copy()
+        
+        # Apply multiple advanced processing techniques
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        # 1. Histogram equalization
+        equalized = cv2.equalizeHist(gray)
+        
+        # 2. Morphological operations
+        kernel = np.ones((5,5), np.uint8)
+        opening = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
+        closing = cv2.morphologyEx(gray, cv2.MORPH_CLOSE, kernel)
+        
+        # 3. Create composite image
+        height, width = frame.shape[:2]
+        composite = np.zeros((height*2, width*2, 3), dtype=np.uint8)
+        
+        # Original (top-left)
+        composite[:height, :width] = frame
+        
+        # Histogram equalized (top-right)
+        composite[:height, width:] = cv2.cvtColor(equalized, cv2.COLOR_GRAY2BGR)
+        
+        # Morphological opening (bottom-left)
+        composite[height:, :width] = cv2.cvtColor(opening, cv2.COLOR_GRAY2BGR)
+        
+        # Morphological closing (bottom-right)
+        composite[height:, width:] = cv2.cvtColor(closing, cv2.COLOR_GRAY2BGR)
+        
+        # Add labels
+        cv2.putText(composite, 'Original', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.putText(composite, 'Histogram Equalized', (width + 10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.putText(composite, 'Morphological Opening', (10, height + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.putText(composite, 'Morphological Closing', (width + 10, height + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        
+        # Encode as JPEG
+        ret, buffer = cv2.imencode('.jpg', composite, [cv2.IMWRITE_JPEG_QUALITY, 80])
+        if ret:
+            encoded_image = base64.b64encode(buffer).decode('utf-8')
+            return jsonify({
+                'success': True,
+                'technique': 'Advanced Image Processing',
+                'result_image': f'data:image/jpeg;base64,{encoded_image}',
+                'details': {
+                    'techniques': ['Histogram Equalization', 'Morphological Opening', 'Morphological Closing'],
+                    'description': 'Multiple advanced processing techniques applied'
+                }
+            })
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/process/complete_analysis', methods=['POST'])
+def api_complete_analysis():
+    """🔬 Complete Analysis - Full Emotion Detection"""
+    try:
+        # Thread-safe frame access
+        with web_system.frame_lock:
+            if web_system.current_frame is None:
+                return jsonify({'success': False, 'message': 'No frame available - start camera first'})
+            frame = web_system.current_frame.copy()
+        
+        # Temporarily enable full analysis
+        old_mode = web_system.analysis_mode
+        web_system.analysis_mode = True
+        web_system.last_analysis_request = time.time()
+        
+        # Run full emotion detection pipeline
+        if web_system.detector:
+            processed_frame = web_system.detector.process_frame(frame)
+            
+            # Get current emotions
+            emotions = web_system.current_emotions or {}
+            
+            # Encode processed frame
+            ret, buffer = cv2.imencode('.jpg', processed_frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            if ret:
+                encoded_image = base64.b64encode(buffer).decode('utf-8')
+                
+                # Restore analysis mode after short delay (will turn off after 10 seconds)
+                import threading
+                def reset_analysis_mode():
+                    time.sleep(10)
+                    web_system.analysis_mode = old_mode
+                
+                threading.Thread(target=reset_analysis_mode, daemon=True).start()
+                
+                return jsonify({
+                    'success': True,
+                    'technique': 'Complete Emotion Analysis',
+                    'result_image': f'data:image/jpeg;base64,{encoded_image}',
+                    'emotions': emotions,
+                    'details': {
+                        'components': ['MediaPipe Face Detection', 'DeepFace Emotion Analysis', 'YOLO Context Analysis'],
+                        'description': 'Full multimodal emotion detection pipeline'
+                    }
+                })
+        
+        # Restore analysis mode if failed
+        web_system.analysis_mode = old_mode
+        return jsonify({'success': False, 'message': 'Analysis failed'})
+    
+    except Exception as e:
+        web_system.analysis_mode = old_mode
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/session', methods=['POST'])
 def api_set_session():
@@ -1085,6 +1766,23 @@ if __name__ == '__main__':
     print("Microservice running on: http://localhost:5002")
     print("Video feed: http://localhost:5002/video_feed")
     print("Health check: http://localhost:5002/health")
+    print("Camera debug: http://localhost:5002/api/camera_debug")
+    print("\n📹 Camera Troubleshooting:")
+    print("🔍 Test all cameras: POST /api/camera_test_different_indices")
+    print("🔄 Switch camera: POST /api/camera_switch/<index>")
+    print("\n🎯 Image Processing Endpoints:")
+    print("📸 Advanced Processing: POST /api/process/advanced_processing")
+    print("🔍 Edge Detection: POST /api/process/edge_detection")
+    print("🎨 Color Analysis: POST /api/process/color_analysis")  
+    print("👤 Face Analysis: POST /api/process/face_analysis")
+    print("🔬 Complete Analysis: POST /api/process/complete_analysis")
+    
+    # 📹 Camera is ready but NOT auto-started (user must manually start)
+    print("\n📹 Camera ready - use /api/start_camera to begin")
+    print("💡 Manual control:")
+    print("   - Start: POST /api/start_camera")
+    print("   - Stop:  POST /api/stop_camera")
+    print("   - Status: GET /api/status")
     
     # 🎯 START ON PORT 5002 AS MICROSERVICE - PRODUCTION MODE
     # 🚀 DISABLE DEBUG: Prevents crashes and auto-restart on file changes

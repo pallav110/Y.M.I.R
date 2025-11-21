@@ -195,19 +195,46 @@ class AdvancedEmotionFusionEngine:
             if facial_timestamp.tzinfo is None:
                 facial_timestamp = facial_timestamp.replace(tzinfo=timezone.utc)
             facial_age = (now - facial_timestamp).total_seconds()
-            is_camera_active = facial_age < 60  # Camera active in last minute
+            
+            # 🔥 IMPROVED: Check if facial microservice is actually running
+            try:
+                import requests
+                response = requests.get('http://localhost:5002/api/status', timeout=1)
+                live_facial_available = response.status_code == 200
+            except:
+                live_facial_available = False
+                
+            is_camera_active = live_facial_available or facial_age < 120  # Live API OR recent emotions
+            
+            if live_facial_available:
+                print(f"📹 Camera ACTIVE: Live facial microservice detected")
+            elif facial_age < 120:
+                print(f"📹 Camera ACTIVE: Recent facial emotions ({facial_age:.0f}s ago)")
+            else:
+                print(f"📹 Camera INACTIVE: No live service, emotions {facial_age:.0f}s old")
+                
+            # Also check if we're currently getting new emotions
+            if facial_age > 120:  # If emotions are > 2 minutes old, try to get fresh ones
+                print(f"⚠️ Facial emotions are {facial_age:.0f}s old - attempting fresh retrieval")
         
         # 🎮 DYNAMIC WEIGHTING BASED ON USER ACTIVITY
         print(f"🎯 Activity Analysis:")
         print(f"   💬 Text age: {text_age:.0f}s, Active chatting: {is_actively_chatting}")
         print(f"   📹 Face age: {facial_age:.0f}s, Camera active: {is_camera_active}")
         
-        # SCENARIO 1: User is actively chatting (text should STRONGLY dominate)
+        # SCENARIO 1: User is actively chatting AND text is very recent (text should dominate BUT allow facial influence)
         if is_actively_chatting and text_age < 60:
-            facial_weight = 0.1   # Very low facial weight
-            text_weight = 0.9    # Very high text weight
+            facial_weight = 0.3   # Allow meaningful facial influence
+            text_weight = 0.7    # Text leads but doesn't completely dominate
             strategy = "active_chatting"
-            print(f"   🎯 Strategy: ACTIVE CHATTING (90/10) - text emotions dominate")
+            print(f"   🎯 Strategy: ACTIVE CHATTING (70/30) - text leads, facial can still influence")
+        
+        # SCENARIO 1b: Text is too old (>1 hour), prioritize facial even if "actively chatting"
+        elif text_age > 3600:  # Text older than 1 hour
+            facial_weight = 0.8   # Prioritize facial
+            text_weight = 0.2    # Old text has minimal influence
+            strategy = "text_too_old"
+            print(f"   🎯 Strategy: TEXT TOO OLD (80/20) - facial emotions prioritized")
         
         # SCENARIO 2: Only camera running, no recent text (facial should STRONGLY dominate)
         elif is_camera_active and not is_recent_text:
@@ -334,6 +361,37 @@ class RealEmotionCombiner:
             print(f"📂 Project root: {self.project_root}")
             print(f"🔥 Firebase: {'✅ Connected' if self.firebase_client else '❌ Unavailable'}")
             print(f"🧠 Fusion strategies: {list(self.fusion_engine.fusion_strategies.keys())}")
+    
+    def get_live_facial_emotions(self) -> Optional[Dict[str, Any]]:
+        """🔥 Get live facial emotions directly from microservice (most current)"""
+        try:
+            import requests
+            response = requests.get('http://localhost:5002/api/emotions', timeout=2)
+            if response.status_code == 200:
+                data = response.json()
+                if data and isinstance(data, dict) and 'emotions' in data:
+                    # Convert to format compatible with stored emotions
+                    for face_id, emotion_data in data['emotions'].items():
+                        if emotion_data and 'dominant' in emotion_data:
+                            emotions_dict = emotion_data.get('dominant', {})
+                            if isinstance(emotions_dict, dict) and emotions_dict:
+                                # Convert percentage to decimal
+                                normalized_emotions = {k: v/100 if v > 1 else v for k, v in emotions_dict.items()}
+                                print(f"🔥 LIVE facial emotion retrieved: {max(normalized_emotions, key=normalized_emotions.get)} ({max(normalized_emotions.values()):.3f})")
+                                return {
+                                    'emotions': normalized_emotions,
+                                    'confidence': emotion_data.get('confidence', 0.0),
+                                    'quality_score': emotion_data.get('quality', 0.0),
+                                    'timestamp': datetime.now(),  # Current time since it's live
+                                    'face_id': face_id,
+                                    'session_id': 'live_microservice',
+                                    'source': 'live_api'
+                                }
+            return None
+        except Exception as e:
+            if not self.silent:
+                print(f"⚠️ Could not get live facial emotions: {e}")
+            return None
     
     def _find_project_root(self) -> Path:
         """Find the project root directory"""
@@ -516,11 +574,18 @@ class RealEmotionCombiner:
                     'emotion' in data and 
                     'message_id' in data and 
                     'face_id' not in data):
+                    # Fix timezone handling for text emotions
+                    text_timestamp = data.get('timestamp')
+                    if text_timestamp and text_timestamp.tzinfo is None:
+                        text_timestamp = text_timestamp.replace(tzinfo=timezone.utc)
+                    
+                    age_seconds = (now - text_timestamp).total_seconds() if text_timestamp else 999999
+                    
                     recent_text_emotions.append({
                         'doc': doc,
                         'data': data,
-                        'timestamp': data.get('timestamp'),
-                        'age_seconds': (now - data.get('timestamp')).total_seconds()
+                        'timestamp': text_timestamp,
+                        'age_seconds': age_seconds
                     })
             
             # If recent activity found, use it with high priority
@@ -530,6 +595,7 @@ class RealEmotionCombiner:
                 age = latest['age_seconds']
                 
                 print(f"💬 Found RECENT text emotion (⚡{age:.0f}s ago): {data.get('emotion')}")
+                print(f"🔍 DEBUG: Text timestamp: {latest['timestamp']}, Current: {now}, Age: {age:.1f}s")
                 return {
                     'source': 'firebase_chat_recent',
                     'timestamp': data.get('timestamp'),
@@ -554,11 +620,18 @@ class RealEmotionCombiner:
                     'emotion' in data and 
                     'message_id' in data and 
                     'face_id' not in data):
+                    # Fix timezone handling for extended text emotions
+                    text_timestamp = data.get('timestamp')
+                    if text_timestamp and text_timestamp.tzinfo is None:
+                        text_timestamp = text_timestamp.replace(tzinfo=timezone.utc)
+                    
+                    age_seconds = (now - text_timestamp).total_seconds() if text_timestamp else 999999
+                    
                     text_emotions.append({
                         'doc': doc,
                         'data': data,
-                        'timestamp': data.get('timestamp'),
-                        'age_seconds': (now - data.get('timestamp')).total_seconds()
+                        'timestamp': text_timestamp,
+                        'age_seconds': age_seconds
                     })
             
             if text_emotions:
@@ -567,6 +640,7 @@ class RealEmotionCombiner:
                 age = latest['age_seconds']
                 
                 print(f"💬 Found older text emotion ({age/60:.1f}min ago): {data.get('emotion')}")
+                print(f"🔍 DEBUG: Text timestamp: {latest['timestamp']}, Current: {now}, Age: {age:.1f}s")
                 return {
                     'source': 'firebase_chat_older',
                     'timestamp': data.get('timestamp'),
@@ -594,11 +668,28 @@ class RealEmotionCombiner:
             print(f"🔗 Strategy: {strategy}, Time Range: {minutes_back} minutes")
             print("=" * 70)
         
-        # 🎯 Get facial emotions for this specific session
-        facial_data = self.get_latest_facial_emotions(minutes_back, session_id=session_id)
+        # 🔥 PRIORITY: Try to get LIVE facial emotions first (most current)
+        live_facial_data = self.get_live_facial_emotions()
+        if live_facial_data:
+            facial_data = live_facial_data
+            print(f"🔥 Using LIVE facial emotions from microservice")
+        else:
+            # 🎯 Fallback: Get stored facial emotions for this specific session
+            facial_data = self.get_latest_facial_emotions(minutes_back, session_id=session_id)
+            print(f"📁 Using stored facial emotions from Firebase")
         
         # 🎯 Get text emotions for this specific session
         text_data = self.get_latest_text_emotions(minutes_back, session_id=session_id)
+        
+        # 🔍 DEBUG: Also check global facial emotions (no session filter) for comparison
+        global_facial_data = self.get_latest_facial_emotions(minutes_back, session_id=None)
+        if global_facial_data and not facial_data:
+            print(f"⚠️ DEBUG: Found global facial emotions but not for session {session_id}")
+            print(f"⚠️ DEBUG: Global facial emotion: {global_facial_data.get('emotions', {})}")
+        elif facial_data and global_facial_data:
+            print(f"✅ DEBUG: Both session-specific and global facial emotions found")
+        elif not facial_data and not global_facial_data:
+            print(f"❌ DEBUG: No facial emotions found (neither session-specific nor global)")
         
         # Prepare data for advanced fusion with NORMALIZED SCALES
         facial_fusion_data = None

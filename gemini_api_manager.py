@@ -42,19 +42,22 @@ class GeminiAPIManager:
         self.current_key_index = 0
         self.load_api_keys()
         self.load_state()
+        # Reset quotas on startup to give fresh start
+        self.reset_all_quotas()
         
     def load_api_keys(self):
         """Load all Gemini API keys from environment"""
         api_keys = []
         
         # Load numbered keys (GEMINI_API_KEY1, GEMINI_API_KEY2, etc.)
-        for i in range(1, 8):  # Keys 1-7
+        for i in range(1, 9):  # Keys 1-8
             key = os.getenv(f'GEMINI_API_KEY{i}')
             if key:
                 api_keys.append(APIKeyStatus(
                     key_id=f"GEMINI_API_KEY{i}",
                     key=key
                 ))
+                print(f"🔑 Loaded {f'GEMINI_API_KEY{i}'}: {key[:20]}...")
         
         # Load primary key as fallback
         primary_key = os.getenv('GEMINI_API_KEY')
@@ -223,7 +226,7 @@ class GeminiAPIManager:
             print(f"❌ Failed to configure Gemini: {e}")
             return False
     
-    def create_model(self, model_name: str = "gemini-2.0-flash-exp", **kwargs):
+    def create_model(self, model_name: str = "gemini-2.0-flash-lite", **kwargs):
         """Create a Gemini model with the current API key"""
         if not self.configure_genai():
             raise Exception("No available Gemini API keys")
@@ -277,16 +280,33 @@ class GeminiAPIManager:
             status['keys'].append(key_info)
         
         return status
+    
+    def reset_all_quotas(self):
+        """Reset all quota exhaustions (emergency recovery)"""
+        reset_count = 0
+        for key_status in self.api_keys:
+            if key_status.quota_exhausted:
+                key_status.quota_exhausted = False
+                key_status.error_count = 0
+                key_status.last_error = None
+                key_status.reset_time = None
+                reset_count += 1
+                print(f"🔄 Emergency reset for {key_status.key_id}")
+        
+        if reset_count > 0:
+            print(f"🚨 Emergency reset {reset_count} API keys")
+            self.save_state()
+        return reset_count
 
 
 # Global instance
 gemini_manager = GeminiAPIManager()
 
 
-def get_gemini_model(model_name: str = "gemini-2.0-flash-exp", **kwargs):
+def get_gemini_model(model_name: str = "gemini-2.0-flash-lite", **kwargs):
     """
     Get a Gemini model with automatic API key rotation
-    Usage: model = get_gemini_model("gemini-2.0-flash-exp")
+    Usage: model = get_gemini_model("gemini-2.0-flash-lite")
     """
     return gemini_manager.create_model(model_name, **kwargs)
 
@@ -294,6 +314,11 @@ def get_gemini_model(model_name: str = "gemini-2.0-flash-exp", **kwargs):
 def get_api_status():
     """Get current API key status"""
     return gemini_manager.get_status()
+
+
+def reset_all_api_quotas():
+    """Reset all quota exhaustions across all keys"""
+    return gemini_manager.reset_all_quotas()
 
 
 if __name__ == "__main__":

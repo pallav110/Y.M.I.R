@@ -479,7 +479,7 @@
             <div class="accent-line"></div>
             <p class="text-center text-blue-100 mb-16 max-w-2xl mx-auto">Our technology combines advanced neural networks with real-time processing to deliver an unmatched emotional intelligence experience.</p>
             
-            <div class="grid md:grid-cols-4 gap-8">
+            <div class="grid md:grid-cols-5 gap-6">
                 <div class="card p-8 text-center slide-up" style="--delay: 0.1s">
                     <div class="circle-profile">
                         <img src="{{ url_for('static', filename='Images/DeepFace_Accuracy.png') }}" alt="High Accuracy" />
@@ -510,6 +510,20 @@
                     </div>
                     <h3 class="text-xl font-semibold text-blue-400 mb-3">Mood-Based Media</h3>
                     <p class="text-gray-300">Discover personalized music and content recommendations that perfectly align with your current emotional state.</p>
+                </div>
+                
+                <div class="card p-8 text-center slide-up" style="--delay: 0.5s">
+                    <div class="circle-profile">
+                        <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-3xl mx-auto">
+                            🔬
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-semibold text-blue-400 mb-3">Image Processing Lab</h3>
+                    <p class="text-gray-300">Advanced image processing techniques including edge detection, color analysis, and Viola-Jones face detection.</p>
+                    <button onclick="window.location.href='/image_processing'" 
+                            class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                        Explore Lab
+                    </button>
                 </div>
             </div>
         </div>
